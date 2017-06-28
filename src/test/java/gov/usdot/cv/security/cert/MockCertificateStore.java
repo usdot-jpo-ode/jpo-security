@@ -18,111 +18,123 @@ import gov.usdot.cv.security.crypto.ECDSAProvider;
 import gov.usdot.cv.security.util.Ieee1609dot2Helper;
 
 public class MockCertificateStore {
-	
+
 	static public void addTestCertificates() throws EncodeFailedException, EncodeNotSupportedException {
 		addCertificates("PCA", "PCA-private");
 		addCertificates("Self-public", "Self-private");
 		addCertificates("Client-public", "Client-private");
 	}
-	
-	static public void addCertificates(String publicCertificateName, String privateCertificateName) throws EncodeFailedException, EncodeNotSupportedException {
+
+	static public void addCertificates(String publicCertificateName, String privateCertificateName)
+			throws EncodeFailedException, EncodeNotSupportedException {
 		CertificateWrapper[] certificates = createCertificates();
 		CertificateManager.put(privateCertificateName, certificates[0]);
-		CertificateManager.put(publicCertificateName,  certificates[1]);
+		CertificateManager.put(publicCertificateName, certificates[1]);
 	}
-	
+
 	static public CertificateWrapper[] createCertificates() throws EncodeFailedException, EncodeNotSupportedException {
 		CryptoProvider cryptoProvider = new CryptoProvider();
 		MockCertificate privateCertificate = new MockCertificate(cryptoProvider);
-		MockCertificate publicCertificate  = new MockCertificate(privateCertificate);
+		MockCertificate publicCertificate = new MockCertificate(privateCertificate);
 		return new MockCertificate[] { privateCertificate, publicCertificate };
 	}
-	
+
 	public static class MockCertificate extends CertificateWrapper {
-		
+
 		protected boolean isPrivateCertificate;
 		protected final ECDSAProvider ecdsaProvider;
-		
+
 		/**
 		 * Create private mock certificate
-		 * @param cryptoProvider to use for certificate generation
+		 * 
+		 * @param cryptoProvider
+		 *            to use for certificate generation
 		 */
 		protected MockCertificate(CryptoProvider cryptoProvider) {
 			super(cryptoProvider);
 			isPrivateCertificate = true;
 			ecdsaProvider = cryptoProvider.getSigner();
-			
+
 			AsymmetricCipherKeyPair signingKeyPair = ecdsaProvider.generateKeyPair();
-			signingPrivateKey = (ECPrivateKeyParameters)signingKeyPair.getPrivate();
-			signingPublicKey = (ECPublicKeyParameters)signingKeyPair.getPublic();
-			
+			signingPrivateKey = (ECPrivateKeyParameters) signingKeyPair.getPrivate();
+			signingPublicKey = (ECPublicKeyParameters) signingKeyPair.getPublic();
+
 			AsymmetricCipherKeyPair encryptKeyPair = ecdsaProvider.generateKeyPair();
-			encryptionPrivateKey = (ECPrivateKeyParameters)encryptKeyPair.getPrivate();
-			encryptionPublicKey = (ECPublicKeyParameters)encryptKeyPair.getPublic();
+			encryptionPrivateKey = (ECPrivateKeyParameters) encryptKeyPair.getPrivate();
+			encryptionPublicKey = (ECPublicKeyParameters) encryptKeyPair.getPublic();
 		}
-		
+
 		/**
 		 * Create public mock certificate from a private certificate
-		 * @param privateCertificate to copy public keys from
-		 * @throws EncodeNotSupportedException 
-		 * @throws EncodeFailedException 
+		 * 
+		 * @param privateCertificate
+		 *            to copy public keys from
+		 * @throws EncodeNotSupportedException
+		 * @throws EncodeFailedException
 		 */
-		protected MockCertificate(MockCertificate privateCertificate) throws EncodeFailedException, EncodeNotSupportedException {
+		protected MockCertificate(MockCertificate privateCertificate)
+				throws EncodeFailedException, EncodeNotSupportedException {
 			super(privateCertificate.cryptoProvider);
 			isPrivateCertificate = false;
 			ecdsaProvider = privateCertificate.ecdsaProvider;
 			encryptionPublicKey = privateCertificate.getEncryptionPublicKey();
 			signingPublicKey = privateCertificate.getSigningPublicKey();
 		}
-		
+
 		/**
 		 * Create mock certificate from serialized bytes
-		 * @param cryptoProvider to assign to this certificate
-		 * @param byteBuffer bytes to serialize from
-		 * @throws CertificateException 
-		 * @throws EncodeNotSupportedException 
-		 * @throws EncodeFailedException 
+		 * 
+		 * @param cryptoProvider
+		 *            to assign to this certificate
+		 * @param byteBuffer
+		 *            bytes to serialize from
+		 * @throws CertificateException
+		 * @throws EncodeNotSupportedException
+		 * @throws EncodeFailedException
 		 */
-		protected MockCertificate(CryptoProvider cryptoProvider, byte[] bytes) throws CertificateException, EncodeFailedException, EncodeNotSupportedException {
+		protected MockCertificate(CryptoProvider cryptoProvider, byte[] bytes)
+				throws CertificateException, EncodeFailedException, EncodeNotSupportedException {
 			super(cryptoProvider);
 			ecdsaProvider = cryptoProvider.getSigner();
 			CertificateWrapper cert = CertificateWrapper.fromBytes(cryptoProvider, bytes);
 			isPrivateCertificate = cert.getSigningPrivateKey() != null;
-			if ( isPrivateCertificate ) {
+			if (isPrivateCertificate) {
 				signingPrivateKey = cert.getSigningPrivateKey();
 				encryptionPrivateKey = cert.getEncryptionPrivateKey();
 			}
-			signingPublicKey = 	cert.getSigningPublicKey();
+			signingPublicKey = cert.getSigningPublicKey();
 			encryptionPublicKey = cert.getEncryptionPublicKey();
 		}
-		
+
 		/**
 		 * Serializes mock certificate to bytes
-		 * @throws CryptoException 
+		 * 
+		 * @throws CryptoException
 		 */
 		@Override
 		public byte[] getBytes() {
-			final byte certCount = (byte)(isPrivateCertificate ? 4 : 2);
-			ByteBuffer bb = ByteBuffer.allocate(1 + (ECDSAProvider.ECDSAPublicKeyEncodedLength)*certCount);
+			final byte certCount = (byte) (isPrivateCertificate ? 4 : 2);
+			ByteBuffer bb = ByteBuffer.allocate(1 + (ECDSAProvider.ECDSAPublicKeyEncodedLength) * certCount);
 			bb.put(certCount);
-			if ( isPrivateCertificate ) {
+			if (isPrivateCertificate) {
 				ecdsaProvider.encodePrivateKey(bb, signingPrivateKey);
 				ecdsaProvider.encodePrivateKey(bb, encryptionPrivateKey);
 			}
-			
+
 			try {
 				EccP256CurvePoint encodedSigningPublicKey = ecdsaProvider.encodePublicKey(signingPublicKey);
 				EccP256CurvePoint encodedEncryptionPublicKey = ecdsaProvider.encodePublicKey(encryptionPublicKey);
-				
+
 				bb.put(Ieee1609dot2Helper.encodeCOER(encodedSigningPublicKey));
 				bb.put(Ieee1609dot2Helper.encodeCOER(encodedEncryptionPublicKey));
 			} catch (Exception e) {
+				e.printStackTrace();
 				return null;
 			}
-			
+
 			return Arrays.copyOfRange(bb.array(), 0, bb.position());
 		}
-		
+
 		@Override
 		public boolean isValid() {
 			return true;
@@ -130,8 +142,8 @@ public class MockCertificateStore {
 
 		@Override
 		public Date getExpiration() {
-			final long thisTimeNextWeek = System.currentTimeMillis() + 1000*60*60*24*7;
-			return new Date( thisTimeNextWeek );
+			final long thisTimeNextWeek = System.currentTimeMillis() + 1000 * 60 * 60 * 24 * 7;
+			return new Date(thisTimeNextWeek);
 		}
 	}
 

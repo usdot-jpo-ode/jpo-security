@@ -35,7 +35,6 @@ public class Time64HelperTest {
 	@Test
 	public void testFixedValues() {
 		long[] fixedValues = {
-				0,
 				1234567,
 				12345678,
 				123456789,
