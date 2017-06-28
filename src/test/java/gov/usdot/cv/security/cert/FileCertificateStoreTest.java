@@ -4,6 +4,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.text.ParseException;
 
 import org.apache.commons.codec.DecoderException;
@@ -27,7 +28,7 @@ import gov.usdot.cv.security.util.UnitTestHelper;
 public class FileCertificateStoreTest {
 	static final private boolean isDebugOutput = false;
     
-    private static final String certsValidDate = "Thu May 11 02:00:00 EDT 2017";
+	private static final String certsValidDate = "Fri May 05 20:44:47 EDT 2017";
 	
 	private static final String certsFolder = "./src/test/resources/certs/";
 	private static final String pcaCert = "trustedcerts/pca";
@@ -51,7 +52,7 @@ public class FileCertificateStoreTest {
 	public void testPublicCertificateLoad() throws DecoderException, CertificateException, IOException,
 													CryptoException, DecodeFailedException, DecodeNotSupportedException,
 													EncodeFailedException, EncodeNotSupportedException {
-		FileCertificateStore.load(new CryptoProvider(), "PCA", certsFolder + pcaCert);
+		FileCertificateStore.load(new CryptoProvider(), "PCA", Paths.get(certsFolder, pcaCert));
 		CertificateWrapper cert = CertificateManager.get("PCA");
 		assertNotNull(cert);
 		assertNotNull(cert.getEncryptionPublicKey());
@@ -65,9 +66,9 @@ public class FileCertificateStoreTest {
 													CryptoException, DecodeFailedException, DecodeNotSupportedException,
 													EncodeFailedException, EncodeNotSupportedException {
 		FileCertificateStore.load(new CryptoProvider(), "Self", 
-									certsFolder + selfCert,
-									certsFolder + selfCertPrivateKeyReconstructionValue,
-									certsFolder + signingPrivateKey);
+				Paths.get(certsFolder, selfCert),
+				Paths.get(certsFolder, selfCertPrivateKeyReconstructionValue),
+				Paths.get(certsFolder, signingPrivateKey));
 		CertificateWrapper cert = CertificateManager.get("Self");
 		assertNotNull(cert);
 		assertNotNull(cert.getEncryptionPublicKey());
@@ -82,15 +83,15 @@ public class FileCertificateStoreTest {
 												DecodeFailedException, DecodeNotSupportedException, InvalidCipherTextException {
 		CertificateManager.clear();
 		CryptoProvider cryptoProvider = new CryptoProvider();
-		FileCertificateStore.load(cryptoProvider, "PCA", certsFolder + pcaCert);
+		FileCertificateStore.load(cryptoProvider, "PCA", Paths.get(certsFolder, pcaCert));
 		FileCertificateStore.load(new CryptoProvider(), "Self", 
-									certsFolder + selfCert,
-									certsFolder + selfCertPrivateKeyReconstructionValue,
-									certsFolder + signingPrivateKey);
+				Paths.get(certsFolder, selfCert),
+				Paths.get(certsFolder, selfCertPrivateKeyReconstructionValue),
+				Paths.get(certsFolder, signingPrivateKey));
 		FileCertificateStore.load(new CryptoProvider(), "Client", 
-									certsFolder + clientCert,
-									certsFolder + clientCertPrivateKeyReconstructionValue,
-									certsFolder + signingPrivateKey);
+                Paths.get(certsFolder, clientCert),
+                Paths.get(certsFolder, clientCertPrivateKeyReconstructionValue),
+                Paths.get(certsFolder, signingPrivateKey));
 		
 		decrypt(encryptedTestString, cryptoProvider);
 		encrypt(testString, cryptoProvider);

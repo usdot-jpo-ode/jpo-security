@@ -25,7 +25,7 @@ public class TestCertificateStore {
     static final private boolean isDebugOutput = false;
     private static final Logger log = Logger.getLogger(TestCertificateStore.class);
     
-    private static final String certsValidDate = "Thu May 11 02:00:00 EDT 2017";
+    private static final String certsValidDate = "Fri May 05 20:44:47 EDT 2017";
     
     private static final String PcaCert = "<hex of the bytes from trustedcerts/pca file>";
 

@@ -1,7 +1,7 @@
 package gov.usdot.cv.security.cert;
 
-import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
@@ -29,7 +29,7 @@ public class FileCertificateStore {
 	 * Loads public certificate from file
 	 * @param cryptoProvider cryptographic provider to use
 	 * @param name friendly certificate name
-	 * @param certFileName certificate file path
+	 * @param certFilePath certificate file path
 	 * @return true if certificate was added to the CertificateManager and false otherwise
 	 * @throws DecoderException if HEX string decoding fails
 	 * @throws CertificateException if certificate decoding fails
@@ -40,20 +40,20 @@ public class FileCertificateStore {
 	 * @throws EncodeNotSupportedException if encoding is not supported
 	 * @throws EncodeFailedException if encoding failed
 	 */
-	public static boolean load(CryptoProvider cryptoProvider, String name, String certFileName) 
+	public static boolean load(CryptoProvider cryptoProvider, String name, Path certFilePath) 
 														throws DecoderException, CertificateException, IOException,
 															   CryptoException, DecodeFailedException, DecodeNotSupportedException,
 															   EncodeFailedException, EncodeNotSupportedException {
-		return load(cryptoProvider, name, certFileName, null, null);
+		return load(cryptoProvider, name, certFilePath, null, null);
 	}
 	
 	/**
 	 * Loads encrypted certificate from file
 	 * @param cryptoProvider cryptographic provider to use
 	 * @param name friendly certificate name
-	 * @param certificateFileName certificate file path
-	 * @param privateKeyReconstructionFileName private key reconstruction value file path
-	 * @param seedPrivateKeyFileName seed private key file path
+	 * @param certificateFilePath certificate file path
+	 * @param privateKeyReconstructionFilePath private key reconstruction value file path
+	 * @param seedPrivateKeyFilePath seed private key file path
 	 * @return true if certificate was added to the CertificateManager and false otherwise
 	 * @throws DecoderException if HEX string decoding fails
 	 * @throws CertificateException if certificate decoding fails
@@ -64,39 +64,39 @@ public class FileCertificateStore {
 	 * @throws EncodeNotSupportedException if encoding is not supported
 	 * @throws EncodeFailedException if encoding failed 
 	 */
-	public static boolean load(CryptoProvider cryptoProvider, String name, String certificateFileName,
-									String privateKeyReconstructionFileName, String seedPrivateKeyFileName) 
+	public static boolean load(CryptoProvider cryptoProvider, String name, Path certificateFilePath,
+	                           Path privateKeyReconstructionFilePath, Path seedPrivateKeyFilePath) 
 														throws CertificateException, IOException, DecoderException,
 															   CryptoException, DecodeFailedException, DecodeNotSupportedException,
 															   EncodeFailedException, EncodeNotSupportedException {
 		byte[] certificateBytes = null;
 		try {
-			certificateBytes = FileUtils.readFileToByteArray(new File(certificateFileName));
+			certificateBytes = FileUtils.readFileToByteArray(certificateFilePath.toFile());
 		} catch (Exception ex ) {
-			log.error("Coulnd't read file '" + certificateFileName + "'. Reason: " + ex.getMessage(), ex);
+			log.error("Coulnd't read file '" + certificateFilePath + "'. Reason: " + ex.getMessage(), ex);
 		}
 		
 		CertificateWrapper cert;
-		String msg = String.format("Loading certificate %s from file '%s'", name, certificateFileName);
-		if(privateKeyReconstructionFileName == null  && seedPrivateKeyFileName == null) {
+		String msg = String.format("Loading certificate %s from file '%s'", name, certificateFilePath);
+		if(privateKeyReconstructionFilePath == null  && seedPrivateKeyFilePath == null) {
 			cert = CertificateWrapper.fromBytes(cryptoProvider, certificateBytes);
 		} else {
-			msg += " using private key reconstruction value file '" +  privateKeyReconstructionFileName + "'";
-			msg += " and seed private key file '" + seedPrivateKeyFileName + "'";
+			msg += " using private key reconstruction value file '" +  privateKeyReconstructionFilePath + "'";
+			msg += " and seed private key file '" + seedPrivateKeyFilePath + "'";
 			
 			byte[]  privateKeyReconstructionValueBytes = null;
 			try {
-				privateKeyReconstructionValueBytes = FileUtils.readFileToByteArray(new File(privateKeyReconstructionFileName));
+				privateKeyReconstructionValueBytes = FileUtils.readFileToByteArray(privateKeyReconstructionFilePath.toFile());
 			} catch (Exception ex ) {
-				log.error("Coulnd't read file '" + privateKeyReconstructionFileName + "'. Reason: " + ex.getMessage(), ex);
+				log.error("Coulnd't read file '" + privateKeyReconstructionFilePath + "'. Reason: " + ex.getMessage(), ex);
 			}
 			
 
 			byte[] seedPrivateKeyBytes = null;
 			try {
-				seedPrivateKeyBytes = FileUtils.readFileToByteArray(new File(seedPrivateKeyFileName));
+				seedPrivateKeyBytes = FileUtils.readFileToByteArray(seedPrivateKeyFilePath.toFile());
 			} catch (Exception ex ) {
-				log.error("Coulnd't read file '" + seedPrivateKeyFileName + "'. Reason: " + ex.getMessage(), ex);
+				log.error("Coulnd't read file '" + seedPrivateKeyFilePath + "'. Reason: " + ex.getMessage(), ex);
 			}
 			
 			cert = CertificateWrapper.fromBytes(cryptoProvider, certificateBytes, privateKeyReconstructionValueBytes, seedPrivateKeyBytes);
