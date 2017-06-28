@@ -1,0 +1,7 @@
+/target/
+/lib/
+.settings/
+.classpath
+.project
+*.DS_Store
+/doc/

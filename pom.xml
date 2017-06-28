@@ -1,0 +1,92 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>gov.usdot</groupId>
+	<artifactId>fedgov-cv-security-2016</artifactId>
+	<version>1.0.0-SNAPSHOT</version>
+	<name>IEEE 1609.2 2016 Library</name>
+	<description>Provides support for working with 2016 version of IEEE 1609.2 Messages and CV Certificates</description>
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<java.version>1.8</java.version>
+	</properties>
+	<dependencies>
+		<dependency>
+			<groupId>org.bouncycastle</groupId>
+			<artifactId>bcprov-jdk15on</artifactId>
+			<version>1.56</version>
+		</dependency>
+		<dependency>
+			<groupId>commons-codec</groupId>
+			<artifactId>commons-codec</artifactId>
+			<version>1.6</version>
+		</dependency>
+		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+			<version>1.3.2</version>
+		</dependency>
+		<dependency>
+			<groupId>log4j</groupId>
+			<artifactId>log4j</artifactId>
+			<version>1.2.16</version>
+		</dependency>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.8.2</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>us.dot.its.jpo.ode</groupId>
+			<artifactId>ieee1609dot2</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
+	</dependencies>
+	<build>
+		<plugins>
+			<plugin>
+				<artifactId>maven-resources-plugin</artifactId>
+				<version>3.0.2</version>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.3</version>
+				<configuration>
+					<source>${java.version}</source>
+					<target>${java.version}</target>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<version>2.10.4</version>
+				<configuration>
+					<doctitle>Library for working with IEEE P1609.2™/D9.3 messages and certificates</doctitle>
+					<stylesheetfile>stylesheet.css</stylesheetfile>
+					<docfilessubdirs>true</docfilessubdirs>
+					<groups>
+						<group>
+							<title>1609.2 Message signing, encoding, and parsing</title>
+							<packages>gov.usdot.cv.security.msg</packages>
+						</group>
+						<group>
+							<title>Certificates decoding and management</title>
+							<packages>gov.usdot.cv.security.cert</packages>
+						</group>
+					</groups>
+					<excludePackageNames>gov.usdot.asn1.generated.*</excludePackageNames>
+				</configuration>
+				<executions>
+					<execution>
+						<id>attach-javadocs</id>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+</project>

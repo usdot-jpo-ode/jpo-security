@@ -1,0 +1,127 @@
+<html>
+<body>
+<pre>
+//
+// Code Snippets
+//
+
+// Global initialize
+
+CryptoProvider.initialize();
+
+// Load certificate
+
+CryptoProvider cryptoProvider = new CryptoProvider();
+
+// 1.1 Load certificate from file
+	private static final String certsFolder = "/etc/certs/";
+	private static final String pcaCertFile = "trustedcerts/pca";
+	private static final String signingPrivateKeyFile = "sign.prv";
+	private static final String selfCertFile = "downloadFiles/559f72e456956030.cert";
+	private static final String selfCertPrivateKeyReconstructionValueFile = "downloadFiles/559f72e456956030.s";
+	
+// 1.1.1 Load public certificate (PCA)
+
+	FileCertificateStore.load(new CryptoProvider(), "PCA", certsFolder + pcaCertFile);
+
+// 1.1.2 Load encrypted public certificate with keys (Self)
+
+	FileCertificateStore.load(new CryptoProvider(), "Self", 
+									certsFolder + selfCert,
+									certsFolder + selfCertPrivateKeyReconstructionValue,
+									certsFolder + signingPrivateKey);
+
+// 1.2 Load Certificate from string
+
+    private static final String PcaCert = "80030080fabd443dbf8585fa5981197632787063617273652d746573742e6768736973732e636f6d5e6f5b0002190f14c186000a83010380007c8001e4800348010180012380038500010101008001060001260001800001818001828001050290010490ffff010490ffff020490ffff030490ffff04000183000187008083e7255472518727263f9d3d7f5f7f819baf10771bfadfdc75326778f7bd0c7a8a8080832e142f1875e9947357cc4062b2d0f63b293c935bb242aa0c2ca5470df8ac1be98080a20d86ab6c94a0deaa7353cb9eaabe5275613fcfc55e5d26648b1ce17ebdae2b5041ddb5bc4967b72909b127be83e9932f023532c7041d023fe92121cd310b01";
+    private static final String SigningPrivateKey = "4cfb69ebfea42814116ca752416fb2bc5a8b20e7195ef96bff89ad4cd2567986";
+    private static final String SelfCert  = "0003018097e3682da8de6431508300000000001917119083279c80118c736cc53a9426ffff0101000187818288719fb921a47d02e57e759afa1688d02c721e062bc6928cb638cc6b7256d043";
+    private static final String SelfCertPrivateKeyReconstructionValue = "701b753e785e68a4b0976e4afb2af0471065efa1d6021334ffa790331d6bfdfe";
+    
+	public static boolean load(CryptoProvider cryptoProvider, String name, String hexCert,
+									String hexPrivateKeyReconstructionValue, String hexSeedPrivateKey) 
+														throws CertificateException, IOException, DecoderException,
+															   CryptoException, DecodeFailedException, DecodeNotSupportedException,
+															   EncodeFailedException, EncodeNotSupportedException {
+    	byte[] certificateBytes = Hex.decodeHex(hexCert.toCharArray());
+    	CertificateWrapper cert;
+    	if(hexPrivateKeyReconstructionValue == null  && hexSeedPrivateKey == null) {
+			cert = CertificateWrapper.fromBytes(cryptoProvider, certificateBytes);
+		} else {
+			byte[] privateKeyReconstructionValueBytes = Hex.decodeHex(hexPrivateKeyReconstructionValue.toCharArray());
+			byte[] seedPrivateKeyBytes = Hex.decodeHex(hexSeedPrivateKey.toCharArray());
+	    	cert = CertificateWrapper.fromBytes(cryptoProvider, certificateBytes, privateKeyReconstructionValueBytes, seedPrivateKeyBytes);
+    	}
+    	if(cert != null) {
+    		boolean isValid = cert.isValid();
+    		if(isValid) {
+    			CertificateManager.put(name, cert);
+			}
+    		return isValid;
+    	}
+    	return false;
+	}
+	
+// 1.2.1 Load public certificate (PCA)
+
+	load(cryptoProvider, "PCA", PcaCert, null, null);
+
+// 1.2.2 Load encrypted public certificate with keys (Self)
+
+	load(cryptoProvider, "Self", SelfCert, SelfCertPrivateKeyReconstructionValue, SigningPrivateKey);
+	
+// 2. Create 1609.2 message
+
+	private static final int yourPsid = 0x2fe1;
+	
+	static final String serviceRequestHex  = "301C8002009B810101820420013E16A30DA00680046C0F173A810300C351";
+	static final String vehSitDataHex      = "308203728002009A810105820420013E16830104A476A025A013800207DD81010C82010983010984011E85011E8104CE4574248204194D066F83020348820109A34A8348FFEEFEB400000064FFF9FEC800000064FFF8FE9A000000640000FEB200000064FFFBFEA8FF9C0064FFFEFEB200000064FFFBFE9C00000064FFF5FEBE00000064FFEDFEA800000064A58202E23050800420013E16A113800207DD81010C82010983010984011E85011EA2108004194D066F8104CE45742482020348A3218002E6728101688201318307000100012B000084020965A50880020104810200EC3050800420013E16A113800207DD81010C82010983010984011E85011EA2108004194D05438104CE45740E8202034AA3218002E6728101688201318307000100012B000084020965A50880020104810200EC3050800420013E16A113800207DD81010C82010983010984011E85011EA2108004194D042B8104CE45740E8202034AA3218002E6728101688201318307000100012B000084020965A50880020104810200EC3050800420013E16A113800207DD81010C82010983010984011E85011EA2108004194D02E88104CE4573FC8202034AA3218002E6728101688201318307000100012B000084020965A50880020104810200EC3050800420013E16A113800207DD81010C82010983010984011E85011EA2108004194D01BB8104CE4573FB8202034AA3218002E6728101688201318307000100012B000084020965A50880020104810200EC3050800420013E16A113800207DD81010C82010983010984011E85011EA2108004194D00858104CE4573F482020349A3218002E6728101688201318307000100012B000084020965A50880020104810200EC3050800420013E16A113800207DD81010C82010983010984011E85011DA2108004194CFF588104CE4573F382020349A3218002E6728101688201318307000100012B000084020965A50880020104810200EC3050800420013E16A113800207DD81010C82010983010984011E85011DA2108004194CFE178104CE4573EC82020349A3218002E6728101688201318307000100012B000084020965A50880020104810200EC3050800420013E16A113800207DD81010C82010983010984011E85011DA2108004194CFCF48104CE4573DF82020349A3218002E6728101688201318307000100012B000084020965A50880020104810200EC86023132";
+
+	static byte[] serviceRequest = Hex.decodeHex(serviceRequestHex.toCharArray());
+	static byte[] vehSitData     = Hex.decodeHex(vehSitDataHex.toCharArray());
+	
+	IEEE1609p2Message msgSend = new IEEE1609p2Message();
+	msgSend.setPSID(yourPsid);
+	
+// 2.1 Create signed 1609.2 message
+
+// 2.1.1 Create signed 1609.2 message with certificate
+	byte[] msg1 = msgSend.sign(serviceRequest);
+	byte[] vsd2 = msgSend.sign(vehSitData, true);
+	
+// 2.1.2 Create signed 1609.2 message with digest
+	byte[] vsd1 = msgSend.sign(vehSitData, false);
+	
+// 2.2 Create encrypted 1609.2 message
+
+// 2.2.1 Recipient
+	// Recipient is the other party's CertId8 captured from a ServiceRequest or ServiceResponse message signed with a certificate
+	byte[] recipient;
+	
+// 2.2.2 Create encrypted 1609.2 message with digest
+	byte[] encryptedVehSitData = msgSend.encrypt(vehSitData, recipient);
+	
+// 2.2.3 Create encrypted 1609.2 message with certificate
+	byte[] encryptedVehSitData = msgSend.encrypt(vehSitData, true, recipient);
+
+
+// 3. Parse 1609.2 message
+
+	IEEE1609p2Message msgRecv = IEEE1609p2Message.parse(signedOrEncryptedMessage, cryptoProvider);
+	byte[] message = msgRecv.getPayload();
+	int psid = (int)msgRecv.getPSID();
+	
+	// save sender's CertId8 to use as the recipient for encrypted messages
+	SignerIdentifier signerIdentifier = msgRecv.SignerIdentifier();
+	if(signerId.hasCertificate()) {
+		Certificate certificate = msgRecv.getCertificate();
+		recipient = certificate.getCertID8();
+	} else {
+		recipient = msgRecv.getCertID8();
+	}
+
+// Clean-up
+CertificateManager.clear();
+</pre>
+</body>
+</html>
