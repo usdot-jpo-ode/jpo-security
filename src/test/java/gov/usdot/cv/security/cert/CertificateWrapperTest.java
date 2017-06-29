@@ -5,6 +5,9 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 
 import org.apache.commons.codec.DecoderException;
@@ -37,24 +40,53 @@ public class CertificateWrapperTest {
     static final private boolean isDebugOutput = false;
     private static final Logger log = Logger.getLogger(CertificateWrapperTest.class);
     
-    private static final String certsValidDate = "Fri May 05 20:44:47 EDT 2017";
+    private static String certsValidDate = "Fri May 05 20:44:47 EDT 2017";
     
-    private static final String PcaCert = "<hex of the bytes from trustedcerts/pca file>";
+    private static String PcaCert = "<hex of the bytes from trustedcerts/pca file>";
 
-    private static final String SigningPrivateKey = "<hex of the bytes from sign.prv>";
+    private static String SigningPrivateKey = "<hex of the bytes from sign.prv>";
     
-    private static final String SelfCert  = "<hex of the bytes from downloadFiles/559f72e456956030.cert>";
-    private static final String SelfCertPrivateKeyReconstructionValue = "<hex of the bytes from downloadFiles/559f72e456956030.s>";
+    private static String SelfCert  = "<hex of the bytes from downloadFiles/0465676ec6d9c8c0.cert>";
+    private static String SelfCertPrivateKeyReconstructionValue = "<hex of the bytes from downloadFiles/0465676ec6d9c8c0.s>";
     
-    private static final String ClientCert  = "<hex of the bytes from downloadFiles/fdd0a6aafb493c6d.cert>";
-    private static final String ClientCertPrivateKeyReconstructionValue = "<hex of the bytes from downloadFiles/fdd0a6aafb493c6d.s>";
+    private static String ClientCert  = "<hex of the bytes from downloadFiles/1ece38c9a40bf946.cert>";
+    private static String ClientCertPrivateKeyReconstructionValue = "<hex of the bytes from downloadFiles/1ece38c9a40bf946.s>";
     
     @BeforeClass
-    public static void setUpBeforeClass() throws Exception {
+    public static void setUpBeforeClass() throws Exception {	
+    	loadCertsFromFile();
 		CryptoProvider.initialize();
         UnitTestHelper.initLog4j(isDebugOutput);
         
 		ClockHelperTest.setNow(certsValidDate);
+    }
+    
+    public static void loadCertsFromFile() throws IOException{
+    	String certsFolder = "/etc/1609_sample_certs/certs/";
+    	String pcaCert = "trustedcerts/pca";
+    	String signingPrivateKey = "sign.prv";
+    	String selfCert = "downloadFiles/0465676ec6d9c8c0.cert";
+    	String selfCertPrivateKeyReconstructionValue = "downloadFiles/0465676ec6d9c8c0.s";
+    	String clientCert = "downloadFiles/1ece38c9a40bf946.cert";
+    	String clientCertPrivateKeyReconstructionValue = "downloadFiles/1ece38c9a40bf946.s";
+    	
+    	Path path = Paths.get(certsFolder, pcaCert);
+    	PcaCert = Hex.encodeHexString(Files.readAllBytes(path));
+    	
+    	path = Paths.get(certsFolder, signingPrivateKey);
+    	SigningPrivateKey = Hex.encodeHexString(Files.readAllBytes(path));
+    	
+    	path = Paths.get(certsFolder, selfCert);
+    	SelfCert = Hex.encodeHexString(Files.readAllBytes(path));
+    	
+    	path = Paths.get(certsFolder, selfCertPrivateKeyReconstructionValue);
+    	SelfCertPrivateKeyReconstructionValue = Hex.encodeHexString(Files.readAllBytes(path));
+    	
+    	path = Paths.get(certsFolder, clientCert);
+    	ClientCert = Hex.encodeHexString(Files.readAllBytes(path));
+    	
+    	path = Paths.get(certsFolder, clientCertPrivateKeyReconstructionValue);
+    	ClientCertPrivateKeyReconstructionValue = Hex.encodeHexString(Files.readAllBytes(path));
     }
     
     @Test
