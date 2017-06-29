@@ -30,13 +30,13 @@ public class FileCertificateStoreTest {
     
 	private static final String certsValidDate = "Fri May 05 20:44:47 EDT 2017";
 	
-	private static final String certsFolder = "./src/test/resources/certs/";
+	private static final String certsFolder = "/etc/1609_sample_certs/certs/";
 	private static final String pcaCert = "trustedcerts/pca";
 	private static final String signingPrivateKey = "sign.prv";
-	private static final String selfCert = "downloadFiles/559f72e456956030.cert";
-	private static final String selfCertPrivateKeyReconstructionValue = "downloadFiles/559f72e456956030.s";
-	private static final String clientCert = "downloadFiles/fdd0a6aafb493c6d.cert";
-	private static final String clientCertPrivateKeyReconstructionValue = "downloadFiles/fdd0a6aafb493c6d.s";
+	private static final String selfCert = "downloadFiles/0465676ec6d9c8c0.cert";
+	private static final String selfCertPrivateKeyReconstructionValue = "downloadFiles/0465676ec6d9c8c0.s";
+	private static final String clientCert = "downloadFiles/1ece38c9a40bf946.cert";
+	private static final String clientCertPrivateKeyReconstructionValue = "downloadFiles/1ece38c9a40bf946.s";
 	
 	private static final String testString = "48656c6c6f20776f726c6421";
 	private static final String encryptedTestString = "0381004003800c48656c6c6f20776f726c642140022fe100017f6592a50f508101010003018097e3682da8de6431508300000000001917119083279c80118c736cc53a9426ffff0101000187818288719fb921a47d02e57e759afa1688d02c721e062bc6928cb638cc6b7256d0438080403fae8a8a0f16f550a450ba143498c0c3210f3baec82797f62dfb9f9700bf436bbec3192a092bc2ff43f8d8b6d90b38897ffec39d5f0a89ff6808984e6ce41f";
