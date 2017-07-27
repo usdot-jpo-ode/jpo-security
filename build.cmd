@@ -1,2 +1,2 @@
-call mvn clean install
+call mvn -DskipTests clean install
 pause

@@ -75,8 +75,6 @@ public class IEEE1609p2Message {
 	
 	private CertificateWrapper selfCertificate = CertificateManager.get(IEEE1609p2Message.selfCertificateFriendlyName);
 	
-	static private Ieee1609Dot2Data message;
-	
 	private CertificateWrapper certificateWrapper;
 	private HashedId8 certID8;
 	private Psid psid;
@@ -140,7 +138,7 @@ public class IEEE1609p2Message {
 		}
 		
 		try {
-			message = Ieee1609dot2Helper.decodeCOER(msgBytes, new Ieee1609Dot2Data());
+			Ieee1609Dot2Data message = Ieee1609dot2Helper.decodeCOER(msgBytes, new Ieee1609Dot2Data());
 			Uint8 version = message.getProtocolVersion();
 			if(!version.equalTo(protocolVersion)) {
 				throw new MessageException(
@@ -164,6 +162,44 @@ public class IEEE1609p2Message {
 		}
 	}
 	
+    /**
+     * Creates IEEE 1609.2 Message from Ieee1609Dot2Data with explicit cryptographic provider
+     * @param message Ieee1609Dot2Data
+     * @return IEEE1609p2Message instance
+     * @throws MessageException if bytes do not represent an IEEE 1609.2 Message
+     * @throws CertificateException if certificate in the message is not valid
+     * @throws CryptoException if symmetric decryption fails
+     * @throws EncodeNotSupportedException if encoding is not supported
+     * @throws EncodeFailedException if encoding failed
+     */
+    static public IEEE1609p2Message convert(Ieee1609Dot2Data message) 
+                throws MessageException, EncodeFailedException, CertificateException, EncodeNotSupportedException, CryptoException {
+        if(message == null) {
+            return null;
+        }
+        
+        CryptoProvider cryptoProvider = new CryptoProvider();
+        
+        Uint8 version = message.getProtocolVersion();
+        if(!version.equalTo(protocolVersion)) {
+            throw new MessageException(
+                        String.format("Unexpected Protocol Version value. Expected %d, Actual: %d.",
+                                        version,
+                                        protocolVersion.intValue()));
+        }
+        
+        Ieee1609Dot2Content content = message.getContent();
+        if (content.hasSignedData()) {
+            return parseSigned(content.getSignedData(), cryptoProvider);
+        }
+        else if(content.hasEncryptedData()) {
+            return parseEncrypted(content.getEncryptedData(), cryptoProvider);
+        }
+        else {
+            throw new MessageException(String.format("Unexpected Content Type value %d.", content.getChosenFlag()));
+        }
+    }
+    
 	/**
 	 * Creates IEEE 1609.2 Message from signed data with explicit cryptographic provider
 	 * @param signedData  signed data to parse
