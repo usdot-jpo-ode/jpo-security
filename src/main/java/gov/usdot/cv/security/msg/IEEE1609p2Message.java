@@ -635,6 +635,10 @@ public class IEEE1609p2Message {
 		log.debug(String.format("New self certificate friendly name: '%s'", selfCertificateFriendlyName));
 	}
 	
+    static public String getSelfCertificateFriendlyName() {
+        return selfCertificateFriendlyName;
+    }
+    
 	/**
 	 * Retrieves self certificate.
 	 * The certificate is always a public certificate with private keys set after it has been instantiated. 
