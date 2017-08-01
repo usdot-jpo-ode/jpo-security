@@ -570,6 +570,14 @@ public class IEEE1609p2Message {
 		return payload.getData().getContent().getUnsecuredData().byteArrayValue();
 	}
 
+    /**
+     * Retrieves Ieee1609Dot2Data from the message
+     * @return Ieee1609Dot2Data
+     */
+    public Ieee1609Dot2Data getIeee1609Dot2Data() {
+        return payload.getData();
+    }
+
 	/**
 	 * Retrieves sender's public certificate
 	 * @return sender's public certificate or null in one is not present in the message
