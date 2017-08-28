@@ -10,6 +10,20 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<java.version>1.8</java.version>
 	</properties>
+	<distributionManagement>
+	  <repository>
+	    <id>jpo-security</id>
+	    <url>
+	      packagecloud+https://packagecloud.io/schwartz_matthew2/jpo-security
+	    </url>
+	  </repository>
+	  <snapshotRepository>
+	    <id>jpo-security</id>
+	    <url>
+	      packagecloud+https://packagecloud.io/schwartz_matthew2/jpo-security
+	    </url>
+	  </snapshotRepository>
+	</distributionManagement>
 	<dependencies>
 		<dependency>
 			<groupId>org.bouncycastle</groupId>
@@ -44,6 +58,13 @@
 		</dependency>
 	</dependencies>
 	<build>
+		<extensions>
+	    <extension>
+	      <groupId>io.packagecloud.maven.wagon</groupId>
+	      <artifactId>maven-packagecloud-wagon</artifactId>
+	      <version>0.0.4</version>
+	    </extension>
+	  </extensions>
 		<plugins>
 			<plugin>
 				<artifactId>maven-resources-plugin</artifactId>
