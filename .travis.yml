@@ -12,17 +12,18 @@ before_install:
   - mvn clean
   - mvn install
   - cd ..
-  - echo "installing 1609.2 security library repository"
-  - git clone https://github.com/usdot-jpo-ode/jpo-security.git fedgov-cv-security-2016
-  - cd fedgov-cv-security-2016
-  - mvn clean
-  - mvn -DskipTests install
-  - cd ..
+#  - echo "installing 1609.2 security library repository"
+#  - git clone https://github.com/usdot-jpo-ode/jpo-security.git fedgov-cv-security-2016
+#  - cd fedgov-cv-security-2016
+#  - mvn clean
+#  - mvn -DskipTests install
+#  - cd ..
 install: true #must disable pre-installation of dependencies because it fails due to missing oss.runtime dependency install 
+script: mvn clean install -DskipTests
 deploy:
   provider: script
-  #script: "cp .travis.settings.xml $HOME/.m2/settings.xml && mvn deploy"
-  script: "mvn clean install"
+  script: "cp .travis.settings.xml $HOME/.m2/settings.xml && mvn deploy"
+  #script: "mvn clean install"
   skip_cleanup: true
   on:
     tags: false 
