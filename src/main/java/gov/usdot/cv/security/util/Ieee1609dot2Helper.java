@@ -22,7 +22,8 @@ import gov.usdot.asn1.generated.ieee1609dot2.Ieee1609dot2;
 public class Ieee1609dot2Helper {
 	private static final Logger logger = Logger.getLogger(Ieee1609dot2Helper.class);
 	
-	private static final Coder COERCoder = Ieee1609dot2.getCOERCoder();
+   private static final Coder COERCoder = Ieee1609dot2.getCOERCoder();
+   private static final Coder DERCoder = Ieee1609dot2.getDERCoder();
 	
 	static {
 		try {
@@ -61,8 +62,42 @@ public class Ieee1609dot2Helper {
 	public static <T extends AbstractData> T decodeCOER(byte[] bytes, T dataType) 
 												throws DecodeFailedException, DecodeNotSupportedException {
 		ByteArrayInputStream bytesStream = new ByteArrayInputStream(bytes);
-		T data = (T)COERCoder.decode(bytesStream, dataType);
+		@SuppressWarnings("unchecked")
+      T data = (T)COERCoder.decode(bytesStream, dataType);
 		
 		return data;
 	}
+
+   /**
+    * Encode OSS ASN.1 generated class to COER bytes
+    * @param <T> AbstractData type parameter
+    * @param data OSS ASN.1 generated class to encode
+    * @return COER encoded byte array
+    * @throws EncodeNotSupportedException if encoding is not supported
+    * @throws EncodeFailedException if encoding failed
+    */
+   public static <T extends AbstractData> byte[] encodeDER(T data) throws EncodeFailedException, EncodeNotSupportedException {
+      ByteArrayOutputStream sink = new ByteArrayOutputStream();
+      DERCoder.encode(data, sink);
+      
+      return sink.toByteArray();
+   }
+
+   /**
+    * Decode COER bytes to OSS ASN.1 generated class
+    * @param bytes  COER encoded bytes
+    * @param <T> AbstractData type parameter
+    * @param dataType The OSS ASN.1 generate class the bytes should decode to
+    * @return instantiation of the OSS ASN.1 generated class
+    * @throws DecodeFailedException if decoding failed
+    * @throws DecodeNotSupportedException if decoding is not supported
+    */
+   public static <T extends AbstractData> T decodeDER(byte[] bytes, T dataType) 
+                                    throws DecodeFailedException, DecodeNotSupportedException {
+      ByteArrayInputStream bytesStream = new ByteArrayInputStream(bytes);
+      @SuppressWarnings("unchecked")
+      T data = (T)DERCoder.decode(bytesStream, dataType);
+      
+      return data;
+   }
 }

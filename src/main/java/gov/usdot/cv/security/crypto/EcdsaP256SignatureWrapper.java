@@ -20,7 +20,7 @@ public class EcdsaP256SignatureWrapper {
 	
 	private static final Logger log = Logger.getLogger(EcdsaP256SignatureWrapper.class);
 	
-	final BigInteger r, s;
+	private final BigInteger r, s;
 	
 	/**
 	 * Construct signature from r and s BigIntegers
@@ -132,4 +132,14 @@ public class EcdsaP256SignatureWrapper {
 	static public BigInteger decodeBigInteger(byte[] bytes) {
 		return new BigInteger((int) 1, bytes);
 	}
+
+   public BigInteger getR() {
+      return r;
+   }
+
+   public BigInteger getS() {
+      return s;
+   }
+	
+	
 }
