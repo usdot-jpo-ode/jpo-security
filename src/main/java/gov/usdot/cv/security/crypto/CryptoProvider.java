@@ -35,7 +35,7 @@ public class CryptoProvider {
 	 * @return calculated SHA-256 digest
 	 */
 	public byte[] computeDigest(byte[] bytes) {
-		return computeDigest(bytes, 0, bytes.length);
+		return computeDigest(bytes, 0, (bytes != null ? bytes.length : 0));
 	}
 	
 	/**
