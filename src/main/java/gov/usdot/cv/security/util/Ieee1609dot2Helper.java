@@ -27,6 +27,16 @@ public class Ieee1609dot2Helper {
 	
 	static {
 		try {
+			COERCoder.enableAutomaticDecoding();
+			COERCoder.enableAutomaticEncoding();
+			COERCoder.enableContainedValueDecoding(true);
+			COERCoder.enableContainedValueEncoding();
+			
+			DERCoder.enableAutomaticDecoding();
+			DERCoder.enableAutomaticEncoding();
+			DERCoder.enableContainedValueDecoding(true);
+			DERCoder.enableContainedValueEncoding();
+			
 			Ieee1609dot2.initialize();
 		} catch (ControlTableNotFoundException e) {
 			logger.error("Failed to initiliaze Ieee1609dot2 environment ", e);
