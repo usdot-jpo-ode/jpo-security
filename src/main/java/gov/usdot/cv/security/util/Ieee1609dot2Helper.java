@@ -29,12 +29,12 @@ public class Ieee1609dot2Helper {
 		try {
 			COERCoder.enableAutomaticDecoding();
 			COERCoder.enableAutomaticEncoding();
-			COERCoder.enableContainedValueDecoding(true);
+			COERCoder.enableContainedValueDecoding();
 			COERCoder.enableContainedValueEncoding();
 			
 			DERCoder.enableAutomaticDecoding();
 			DERCoder.enableAutomaticEncoding();
-			DERCoder.enableContainedValueDecoding(true);
+			DERCoder.enableContainedValueDecoding();
 			DERCoder.enableContainedValueEncoding();
 			
 			Ieee1609dot2.initialize();
