@@ -9,16 +9,17 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<java.version>1.8</java.version>
+		<maven.test.skip>true</maven.test.skip>
 	</properties>
-		<distributionManagement>
-	  <repository>
-	    <id>jpo-security</id>
-	    <url>packagecloud+https://packagecloud.io/schwartz_matthew2/jpo-security</url>
-	  </repository>
-	  <snapshotRepository>
-	    <id>jpo-security</id>
-	    <url>packagecloud+https://packagecloud.io/schwartz_matthew2/jpo-security</url>
-	  </snapshotRepository>
+	<distributionManagement>
+		<repository>
+			<id>jpo-security</id>
+			<url>packagecloud+https://packagecloud.io/schwartz_matthew2/jpo-security</url>
+		</repository>
+		<snapshotRepository>
+		<id>jpo-security</id>
+			<url>packagecloud+https://packagecloud.io/schwartz_matthew2/jpo-security</url>
+		</snapshotRepository>
 	</distributionManagement>
 	<dependencies>
 		<dependency>
