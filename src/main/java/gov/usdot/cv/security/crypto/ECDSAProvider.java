@@ -2,6 +2,7 @@ package gov.usdot.cv.security.crypto;
 
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
+import java.security.interfaces.ECPrivateKey;
 
 import org.apache.log4j.Logger;
 import org.bouncycastle.asn1.nist.NISTNamedCurves;
@@ -239,7 +240,9 @@ public class ECDSAProvider {
     * Decodes private key
     * 
     * @param privateKeyBytes
-    *           array to decode the key from
+    *           array to decode the key from. *CAUTION*: This *IS NOT* the private key encoding
+    *           returned by the PrivateKey#getEncoded() method. This is the byte array value
+    *           of the private key BigInteger value. 
     * @return decoded private key
     */
    public ECPrivateKeyParameters decodePrivateKey(byte[] privateKeyBytes) {
@@ -247,6 +250,18 @@ public class ECDSAProvider {
             ? new ECPrivateKeyParameters(new BigInteger(1, privateKeyBytes), ecdsaDomainParameters) : null;
    }
 
+   /**
+    * Decodes private key
+    * 
+    * @param privateKey is the Java spec EC private key
+    * 
+    * @return decodes private key parameters
+    */
+   public ECPrivateKeyParameters decodePrivateKey(ECPrivateKey privateKey) {
+      return new ECPrivateKeyParameters(privateKey.getS(), ecdsaDomainParameters);
+   }
+
+   
    /**
     * Encodes private key
     * 
