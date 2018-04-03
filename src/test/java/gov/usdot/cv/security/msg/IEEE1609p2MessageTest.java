@@ -93,8 +93,8 @@ public class IEEE1609p2MessageTest {
 		send( vsd3 = msgSend.sign(vehSitData, true ) );	// signed with certificate (test only)
 		// ...........................
 		// only once on the receiving side
-		IEEE1609p2Message.setSelfCertificateFriendlyName("Self");
-		assertNotNull(CertificateManager.get("Self"));
+		IEEE1609p2Message.setSelfCertificateFriendlyName(CertificateWrapper.getSelfCertificateFriendlyName());
+		assertNotNull(CertificateManager.get(CertificateWrapper.getSelfCertificateFriendlyName()));
 		// receive and verify
 		receive( sr, serviceRequest);
 		receive( vsd1, vehSitData);
@@ -251,7 +251,7 @@ public class IEEE1609p2MessageTest {
 		// Certificate Names
 		final String pcaCertName  = "PCA";
 		final String clientCertName = "Client";
-		final String selfCertName = "Self";
+		final String selfCertName = CertificateWrapper.getSelfCertificateFriendlyName();
 		final String unknownCertName = "Unknown";
 		
 		CryptoProvider cryptoProvider = new CryptoProvider();

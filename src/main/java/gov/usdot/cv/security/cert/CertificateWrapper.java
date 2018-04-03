@@ -46,7 +46,12 @@ public class CertificateWrapper {
 	protected Date startValidity;
 	protected Certificate certificate;
 	
-	static private String rootPublicCertificateFriendlyName = "CA";
+   static private String rootPublicCertificateFriendlyName = "root";
+   static private String ecaPublicCertificateFriendlyName = "ECA";
+   static private String raPublicCertificateFriendlyName = "RA";
+   static private String enrollmentPublicCertificateFriendlyName = "enrollment";
+   private static String selfCertificateFriendlyName  = "Self";
+
 	
 	protected final CryptoProvider cryptoProvider;
 	protected final CryptoHelper cryptoHelper;
@@ -471,7 +476,39 @@ public class CertificateWrapper {
 		rootPublicCertificateFriendlyName = newRootPublicCertificateFriendlyName;
 	}
 	
-	/**
+	public static String getEcaPublicCertificateFriendlyName() {
+      return ecaPublicCertificateFriendlyName;
+   }
+
+   public static void setEcaPublicCertificateFriendlyName(String ecaPublicCertificateFriendlyName) {
+      CertificateWrapper.ecaPublicCertificateFriendlyName = ecaPublicCertificateFriendlyName;
+   }
+
+   public static String getRaPublicCertificateFriendlyName() {
+      return raPublicCertificateFriendlyName;
+   }
+
+   public static void setRaPublicCertificateFriendlyName(String raPublicCertificateFriendlyName) {
+      CertificateWrapper.raPublicCertificateFriendlyName = raPublicCertificateFriendlyName;
+   }
+
+   public static String getEnrollmentPublicCertificateFriendlyName() {
+      return enrollmentPublicCertificateFriendlyName;
+   }
+
+   public static void setEnrollmentPublicCertificateFriendlyName(String enrollmentPublicCertificateFriendlyName) {
+      CertificateWrapper.enrollmentPublicCertificateFriendlyName = enrollmentPublicCertificateFriendlyName;
+   }
+
+   public static String getSelfCertificateFriendlyName() {
+      return selfCertificateFriendlyName;
+   }
+
+   public static void setSelfCertificateFriendlyName(String selfCertificateFriendlyName) {
+      CertificateWrapper.selfCertificateFriendlyName = selfCertificateFriendlyName;
+   }
+
+   /**
      * Return the certificate bytes without a signature included.
      * @param cert  certificate to retrieve the unsigned data from
      * @param certBytes  the encoded certificate bytes

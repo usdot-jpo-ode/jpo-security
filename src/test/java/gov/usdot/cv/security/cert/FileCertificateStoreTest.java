@@ -32,7 +32,6 @@ public class FileCertificateStoreTest {
 	
 	private static final String certsFolder = "/etc/1609_sample_certs/certs/";
 	private static final String pcaCert = "trustedcerts/pca";
-	private static final String signingPrivateKey = "sign.prv";
 	private static final String selfCert = "downloadFiles/0465676ec6d9c8c0.cert";
 	private static final String selfCertPrivateKeyReconstructionValue = "downloadFiles/0465676ec6d9c8c0.s";
 	private static final String clientCert = "downloadFiles/1ece38c9a40bf946.cert";
@@ -65,10 +64,10 @@ public class FileCertificateStoreTest {
 	public void testFullCertificateLoad() throws DecoderException, CertificateException, IOException,
 													CryptoException, DecodeFailedException, DecodeNotSupportedException,
 													EncodeFailedException, EncodeNotSupportedException {
-		FileCertificateStore.load(new CryptoProvider(), "Self", 
+		FileCertificateStore.load(new CryptoProvider(), 
+		   CertificateWrapper.getSelfCertificateFriendlyName(), 
 				Paths.get(certsFolder, selfCert),
-				Paths.get(certsFolder, selfCertPrivateKeyReconstructionValue),
-				Paths.get(certsFolder, signingPrivateKey));
+				Paths.get(certsFolder, selfCertPrivateKeyReconstructionValue));
 		CertificateWrapper cert = CertificateManager.get("Self");
 		assertNotNull(cert);
 		assertNotNull(cert.getEncryptionPublicKey());
@@ -86,12 +85,10 @@ public class FileCertificateStoreTest {
 		FileCertificateStore.load(cryptoProvider, "PCA", Paths.get(certsFolder, pcaCert));
 		FileCertificateStore.load(new CryptoProvider(), "Self", 
 				Paths.get(certsFolder, selfCert),
-				Paths.get(certsFolder, selfCertPrivateKeyReconstructionValue),
-				Paths.get(certsFolder, signingPrivateKey));
+				Paths.get(certsFolder, selfCertPrivateKeyReconstructionValue));
 		FileCertificateStore.load(new CryptoProvider(), "Client", 
                 Paths.get(certsFolder, clientCert),
-                Paths.get(certsFolder, clientCertPrivateKeyReconstructionValue),
-                Paths.get(certsFolder, signingPrivateKey));
+                Paths.get(certsFolder, clientCertPrivateKeyReconstructionValue));
 		
 		decrypt(encryptedTestString, cryptoProvider);
 		encrypt(testString, cryptoProvider);
