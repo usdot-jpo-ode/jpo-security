@@ -387,8 +387,10 @@ public class CertificateWrapper {
 			}*/
 		}
 		else {
-			// Reconstruct the Signing Public Key
-			signingPublicKey = ecdsaProvider.reconstructImplicitPublicKey(signerCertificate, this);
+		    if (signerCertificate.getCertificate().getToBeSigned().getVerifyKeyIndicator().hasReconstructionValue()) {
+   			// Reconstruct the Signing Public Key
+   			signingPublicKey = ecdsaProvider.reconstructImplicitPublicKey(signerCertificate, this);
+		    }
 		}
 
 		// Grab or reconstruct the Encryption Public Key
@@ -406,7 +408,9 @@ public class CertificateWrapper {
 			encryptionPublicKey = ecdsaProvider.decodePublicKey(encryptionKeyPoint);
 		}
 		else {
-			encryptionPublicKey = ecdsaProvider.reconstructImplicitPublicKey(signerCertificate, this);
+         if (signerCertificate.getCertificate().getToBeSigned().getVerifyKeyIndicator().hasReconstructionValue()) {
+            encryptionPublicKey = ecdsaProvider.reconstructImplicitPublicKey(signerCertificate, this);
+         }
 		}
 
 		// Reconstruct Private Encryption and Signing Keys
