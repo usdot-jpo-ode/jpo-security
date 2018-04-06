@@ -1,10 +1,19 @@
 package gov.usdot.cv.security.crypto;
 
+import java.io.ByteArrayInputStream;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
+import java.security.Provider;
+import java.security.Signature;
 import java.security.interfaces.ECPrivateKey;
 
+import org.apache.commons.codec.binary.Hex;
 import org.apache.log4j.Logger;
+import org.bouncycastle.asn1.ASN1Encodable;
+import org.bouncycastle.asn1.ASN1InputStream;
+import org.bouncycastle.asn1.ASN1Integer;
+import org.bouncycastle.asn1.ASN1Primitive;
+import org.bouncycastle.asn1.ASN1Sequence;
 import org.bouncycastle.asn1.nist.NISTNamedCurves;
 import org.bouncycastle.asn1.x9.X9ECParameters;
 import org.bouncycastle.crypto.AsymmetricCipherKeyPair;
@@ -58,11 +67,16 @@ public class ECDSAProvider {
    private final ECCurve ecdsaEllipticCurve;
    private final ECDomainParameters ecdsaDomainParameters;
 
+   private Provider jceProvider;
+   private Signature jceSigner;
+
    /**
     * Instantiates ECDSA provider with new cryptographic provider
+    * @param provider 
     */
-   public ECDSAProvider() {
+   public ECDSAProvider(Provider provider) {
       this(new CryptoProvider());
+      this.jceProvider = provider;
    }
 
    /**
@@ -82,6 +96,14 @@ public class ECDSAProvider {
       ecdsaKeyGenerator = new ECKeyPairGenerator();
       ecdsaKeyGenerator.init(ecdsaKeyGenParameters);
       ecdsaSigner = new ECDSASigner();
+      
+      try {
+         jceSigner = Signature.getInstance("NONEwithECDSA", jceProvider);
+         jceSigner.initSign(null);
+      } catch (Exception e) {
+         log.error("Error initializing jceSigner", e);
+      }
+
    }
 
    /**
@@ -110,6 +132,39 @@ public class ECDSAProvider {
       BigInteger[] signatureValue = ecdsaSigner.generateSignature(inputHash);
 
       return new EcdsaP256SignatureWrapper(signatureValue[0], signatureValue[1]);
+   }
+
+   /**
+    * Computes wrapped message signature
+    * 
+    * @param toBeSignedDataBytes
+    *           bytes of the ToBeSignedData
+    * @param signingCertificateBytes
+    *           bytes of the certificate performing the signing
+    * @param signingPrivateKey
+    *           private signing key to use
+    * @return message signature
+    */
+   public EcdsaP256SignatureWrapper computeSignature(
+      byte[] toBeSignedDataBytes,
+      byte[] signingCertificateBytes,
+      ECPrivateKey signingPrivateKey) {
+      if (toBeSignedDataBytes == null || signingCertificateBytes == null) {
+         return null;
+      }
+
+      byte[] inputHash = computeDigest(toBeSignedDataBytes, signingCertificateBytes);
+      EcdsaP256SignatureWrapper signatureWraper = null;
+      try {
+         jceSigner.update(inputHash);
+         byte[] signature = jceSigner.sign();
+         BigInteger[] signatureValue = decodeECDSASignature(signature);
+         signatureWraper = new EcdsaP256SignatureWrapper(signatureValue[0], signatureValue[1]);
+      } catch (Exception e) {
+         log.error("Error signing data", e);
+      }
+
+      return signatureWraper;
    }
 
    /**
@@ -427,4 +482,37 @@ public class ECDSAProvider {
    public AsymmetricCipherKeyPair generateKeyPair() {
       return ecdsaKeyGenerator.generateKeyPair();
    }
+
+   public static BigInteger[] decodeECDSASignature(byte[] signature) throws Exception {
+      BigInteger[] sigs = new BigInteger[2];
+      ByteArrayInputStream inStream = new ByteArrayInputStream(signature);
+      try (ASN1InputStream asnInputStream = new ASN1InputStream(inStream)){
+         ASN1Primitive asn1 = asnInputStream.readObject();
+
+         int count = 0;
+         if (asn1 instanceof ASN1Sequence) {
+             ASN1Sequence asn1Sequence = (ASN1Sequence) asn1;
+             ASN1Encodable[] asn1Encodables = asn1Sequence.toArray();
+             for (ASN1Encodable asn1Encodable : asn1Encodables) {
+                 ASN1Primitive asn1Primitive = asn1Encodable.toASN1Primitive();
+                 if (asn1Primitive instanceof ASN1Integer) {
+                     ASN1Integer asn1Integer = (ASN1Integer) asn1Primitive;
+                     BigInteger integer = asn1Integer.getValue();
+                     if (count  < 2) {
+                         sigs[count] = integer;
+                     }
+                     count++;
+                 }
+             }
+         }
+         if (count != 2) {
+             throw new CryptoException(String.format("Invalid ECDSA signature. Expected count of 2 but got: %d. Signature is: %s", count,
+                     Hex.encodeHexString(signature)));
+         }
+      } catch (Exception e) {
+         log.error("Error decoding encoded signature", e);
+      }
+      return sigs;
+   }
+
 }

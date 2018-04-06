@@ -45,7 +45,7 @@ public class MockCertificateStoreTest {
 		final String pcaNamePrivate = "PCA-private";
 		CertificateWrapper pcaPrivateCert = CertificateManager.get(pcaNamePrivate);
 		assertNotNull(pcaPrivateCert);
-		ECPrivateKeyParameters pcaSigningPrivateKey = pcaPrivateCert.getSigningPrivateKey();
+		ECPrivateKeyParameters pcaSigningPrivateKey = pcaPrivateCert.getSigningKeyPair();
 		assertNotNull(pcaSigningPrivateKey);
 		
 		byte[] bytes = "Hello, World".getBytes();

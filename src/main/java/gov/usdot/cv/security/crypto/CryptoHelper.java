@@ -1,6 +1,8 @@
 package gov.usdot.cv.security.crypto;
 
 
+import java.security.interfaces.ECPrivateKey;
+
 import org.bouncycastle.crypto.params.ECPrivateKeyParameters;
 import org.bouncycastle.crypto.params.ECPublicKeyParameters;
 import org.bouncycastle.crypto.params.KeyParameter;
@@ -99,14 +101,26 @@ public class CryptoHelper {
 	 * Computes message signature
 	 * @param toBeSignedDataBytes bytes of the ToBeSignedData
 	 * @param signingCertificateBytes bytes of the certificate performing the signing
-	 * @param signingPrivateKey private signing key to use
+	 * @param signingPrivateKey alias of private signing key to use
 	 * @return wrapped message signature
 	 */
 	public EcdsaP256SignatureWrapper computeSignature(byte[] toBeSignedDataBytes, byte[] signingCertificateBytes,
-															ECPrivateKeyParameters signingPrivateKey) {
+															ECPrivateKey signingPrivateKey) {
 		return cryptoProvider.getSigner().computeSignature(toBeSignedDataBytes, signingCertificateBytes, signingPrivateKey);
 	}
 	
+   /**
+    * Computes message signature
+    * @param toBeSignedDataBytes bytes of the ToBeSignedData
+    * @param signingCertificateBytes bytes of the certificate performing the signing
+    * @param signingPrivateKey private signing key to use
+    * @return wrapped message signature
+    */
+   public EcdsaP256SignatureWrapper computeSignature(byte[] toBeSignedDataBytes, byte[] signingCertificateBytes,
+                                             ECPrivateKeyParameters signingPrivateKey) {
+      return cryptoProvider.getSigner().computeSignature(toBeSignedDataBytes, signingCertificateBytes, signingPrivateKey);
+   }
+   
 	/**
 	 * Validates message signature
 	 * @param toBeSignedDataBytes bytes of the ToBeSignedData

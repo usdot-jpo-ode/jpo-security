@@ -1,5 +1,6 @@
 package gov.usdot.cv.security.crypto;
 
+import java.security.Provider;
 import java.security.SecureRandom;
 
 import org.bouncycastle.crypto.digests.SHA256Digest;
@@ -16,10 +17,16 @@ public class CryptoProvider {
 	
 	private SHA256Digest digest = null;
 	private AESProvider symmetricCipher = null;
-	private ECDSAProvider signer = null;
-	private ECIESProvider ecies = null;
+	private ECDSAProvider ecdsaProvider = null;
+	private ECIESProvider eciesProvider = null;
 
-	/**
+//   private Provider jceProvider;
+//	public CryptoProvider(Provider jceProvider) {
+//      super();
+//      this.jceProvider = jceProvider;
+//   }
+
+   /**
 	 * Retrieves cryptographic provider for calculating SHA-256 digest per FIPS 180-2.
 	 * @return digest cryptographic provider
 	 */
@@ -71,9 +78,9 @@ public class CryptoProvider {
 	 * @return ECDSA cryptographic provider
 	 */
 	public synchronized ECDSAProvider getSigner() {
-		if ( signer == null )
-			signer = new ECDSAProvider(this);
-		return signer;
+		if ( ecdsaProvider == null )
+			ecdsaProvider = new ECDSAProvider(this);
+		return ecdsaProvider;
 	}
 	
 	/**
@@ -81,9 +88,9 @@ public class CryptoProvider {
 	 * @return ECIES cryptographic provider
 	 */
 	public synchronized ECIESProvider getECIESProvider() {
-		if ( ecies == null )
-			ecies = new ECIESProvider(this);
-		return ecies;
+		if ( eciesProvider == null )
+			eciesProvider = new ECIESProvider(this);
+		return eciesProvider;
 	}
 	
 	/**

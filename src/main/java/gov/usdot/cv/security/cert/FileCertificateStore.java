@@ -6,6 +6,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 import org.apache.commons.codec.DecoderException;
+import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 
@@ -14,6 +15,7 @@ import com.oss.asn1.DecodeNotSupportedException;
 import com.oss.asn1.EncodeFailedException;
 import com.oss.asn1.EncodeNotSupportedException;
 
+import gov.usdot.asn1.generated.ieee1609dot2.ieee1609dot2basetypes.HashedId8;
 import gov.usdot.cv.security.crypto.CryptoException;
 import gov.usdot.cv.security.crypto.CryptoProvider;
 
@@ -42,7 +44,7 @@ public class FileCertificateStore {
 	 */
 	public static boolean load(CryptoProvider cryptoProvider, String name, Path certFilePath) 
 														throws CertificateException {
-		return load(cryptoProvider, name, certFilePath, null);
+		return load(cryptoProvider, name, certFilePath, null, null);
 	}
 	
 	/**
@@ -51,6 +53,7 @@ public class FileCertificateStore {
 	 * @param name friendly certificate name
 	 * @param certificateFilePath certificate file path
 	 * @param privateKeyReconstructionFilePath private key reconstruction value file path
+	 * @param seedPrivateKey the seed private key stored int he keystore
 	 * @return true if certificate was added to the CertificateManager and false otherwise
 	 * @throws DecoderException if HEX string decoding fails
 	 * @throws CertificateException if certificate decoding fails
@@ -62,8 +65,8 @@ public class FileCertificateStore {
 	 * @throws EncodeFailedException if encoding failed 
 	 */
 	public static boolean load(CryptoProvider cryptoProvider, String name, Path certificateFilePath,
-	                           Path privateKeyReconstructionFilePath) throws CertificateException 
-														 {
+	   Path privateKeyReconstructionFilePath, SecureECPrivateKey seedPrivateKey) throws CertificateException 
+	{
 		try {
          CertificateWrapper cert;
          String msg = String.format("Loading certificate %s from file '%s'", name, certificateFilePath);
@@ -81,49 +84,41 @@ public class FileCertificateStore {
           * 
           */
          boolean success = false;
-         if(privateKeyReconstructionFilePath == null  
-               //TODO && seedPrivateKeyFilePath == null
-               ) {
+         if(privateKeyReconstructionFilePath == null) {
          	cert = CertificateWrapper.fromBytes(cryptoProvider, certificateBytes);
          	success = true;
          } else {
-//         	msg += " using private key reconstruction value file '" +  privateKeyReconstructionFilePath + "'";
-//         	msg += " and seed private key file '" + seedPrivateKeyFilePath + "'";
-//         	
-//         	byte[]  privateKeyReconstructionValueBytes = null;
-//         	try {
-//         		privateKeyReconstructionValueBytes = FileUtils.readFileToByteArray(privateKeyReconstructionFilePath.toFile());
-//         	} catch (Exception ex ) {
-//         		throw new CertificateException("Coulnd't read file '" + privateKeyReconstructionFilePath + "'. Reason: " + ex.getMessage(), ex);
-//         	}
-//         	
-//
-//         	byte[] seedPrivateKeyBytes = null;
-//         	try {
-//         		seedPrivateKeyBytes = FileUtils.readFileToByteArray(seedPrivateKeyFilePath.toFile());
-//         	} catch (Exception ex ) {
-//         		throw new CertificateException("Coulnd't read file '" + seedPrivateKeyFilePath + "'. Reason: " + ex.getMessage(), ex);
-//         	}
-//         	
-//         	cert = CertificateWrapper.fromBytes(cryptoProvider, certificateBytes, privateKeyReconstructionValueBytes, seedPrivateKeyBytes);
-//         }
-//         
-//         if(cert != null) {
-//         	HashedId8 certId8 = cert.getCertID8();
-//         	if(certId8 == null) {
-//         		throw new CertificateException("certId8 cannot be empty for certificate " + name);
-//         	}
-//         	msg += ". CertId8: " + Hex.encodeHexString(certId8.byteArrayValue());
-//         	boolean isValid = cert.isValid();
-//         	msg += ". Certificate is valid: " + isValid;
-//         	if(isValid) {
-//         		CertificateManager.put(name, cert);
-//             success = true;
-//         	}
+         	msg += " using private key reconstruction value file '" +  privateKeyReconstructionFilePath;
+         	msg += "' and secret seed private key";
+         	
+         	byte[]  privateKeyReconstructionValueBytes = null;
+         	try {
+         		privateKeyReconstructionValueBytes = FileUtils.readFileToByteArray(privateKeyReconstructionFilePath.toFile());
+         	} catch (Exception ex ) {
+         		throw new CertificateException("Coulnd't read file '" + privateKeyReconstructionFilePath + "'. Reason: " + ex.getMessage(), ex);
+         	}
+         	
+
+            cert = CertificateWrapper.fromBytes(cryptoProvider, certificateBytes, 
+               privateKeyReconstructionValueBytes, seedPrivateKey);
+         }
+         
+         if(cert != null) {
+         	HashedId8 certId8 = cert.getCertID8();
+         	if(certId8 == null) {
+         		throw new CertificateException("certId8 cannot be empty for certificate " + name);
+         	}
+         	msg += ". CertId8: " + Hex.encodeHexString(certId8.byteArrayValue());
+         	boolean isValid = cert.isValid();
+         	msg += ". Certificate is valid: " + isValid;
+         	if(isValid) {
+         		CertificateManager.put(name, cert);
+             success = true;
+         	}
          }
          
          if (success)
-            log.debug(msg + " was unsuccessful.");
+            log.warn(msg + " was unsuccessful.");
          else
             log.debug(msg + " FAILED.");
          

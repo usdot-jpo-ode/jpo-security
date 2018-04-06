@@ -57,7 +57,7 @@ public class FileCertificateStoreTest {
 		assertNotNull(cert.getEncryptionPublicKey());
 		assertNotNull(cert.getSigningPublicKey());
 		assertNull(cert.getEncryptionPrivateKey());
-		assertNull(cert.getSigningPrivateKey());
+		assertNull(cert.getSigningKeyPair());
 	}
 	
 	@Test
@@ -73,7 +73,7 @@ public class FileCertificateStoreTest {
 		assertNotNull(cert.getEncryptionPublicKey());
 		assertNotNull(cert.getSigningPublicKey());
 		assertNotNull(cert.getEncryptionPrivateKey());
-		assertNotNull(cert.getSigningPrivateKey());
+		assertNotNull(cert.getSigningKeyPair());
 	}
 	
 	@Test

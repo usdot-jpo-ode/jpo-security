@@ -144,9 +144,9 @@ public class CertificateWrapperTest {
 			if ( publicCert != null ) {
 				assertTrue(publicCert.isValid());
 				CertificateManager.put(name + "-public", certificate);
-				assertNotNull(certificate.getSigningPrivateKey());
+				assertNotNull(certificate.getSigningKeyPair());
 				assertNotNull(certificate.getEncryptionPrivateKey());
-				assertNull(publicCert.getSigningPrivateKey());
+				assertNull(publicCert.getSigningKeyPair());
 				assertNull(publicCert.getEncryptionPrivateKey());
 				comparePublicKeys(ecdsaProvider, certificate.getSigningPublicKey(), publicCert.getSigningPublicKey());
 				comparePublicKeys(ecdsaProvider, certificate.getEncryptionPublicKey(), publicCert.getEncryptionPublicKey());
@@ -168,7 +168,7 @@ public class CertificateWrapperTest {
     	
 		final byte[] textBytes = "Hello, World!".getBytes();
 
-		EcdsaP256SignatureWrapper signature = ecdsaProvider.computeSignature(textBytes,  certificate.getBytes(), certificate.getSigningPrivateKey());
+		EcdsaP256SignatureWrapper signature = ecdsaProvider.computeSignature(textBytes,  certificate.getBytes(), certificate.getSigningKeyPair());
 		boolean isSignatureValid = ecdsaProvider.verifySignature(textBytes, certificate.getBytes(), certificate.getSigningPublicKey(), signature);
 		log.debug("Is Signarure Valid: " + isSignatureValid);
 		assertTrue(isSignatureValid);

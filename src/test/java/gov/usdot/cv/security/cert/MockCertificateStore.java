@@ -56,11 +56,11 @@ public class MockCertificateStore {
 			ecdsaProvider = cryptoProvider.getSigner();
 
 			AsymmetricCipherKeyPair signingKeyPair = ecdsaProvider.generateKeyPair();
-			signingPrivateKey = (ECPrivateKeyParameters) signingKeyPair.getPrivate();
+			signingKeyPair = (ECPrivateKeyParameters) signingKeyPair.getPrivate();
 			signingPublicKey = (ECPublicKeyParameters) signingKeyPair.getPublic();
 
 			AsymmetricCipherKeyPair encryptKeyPair = ecdsaProvider.generateKeyPair();
-			encryptionPrivateKey = (ECPrivateKeyParameters) encryptKeyPair.getPrivate();
+			encryptionKeyPair = (ECPrivateKeyParameters) encryptKeyPair.getPrivate();
 			encryptionPublicKey = (ECPublicKeyParameters) encryptKeyPair.getPublic();
 		}
 
@@ -97,10 +97,10 @@ public class MockCertificateStore {
 			super(cryptoProvider);
 			ecdsaProvider = cryptoProvider.getSigner();
 			CertificateWrapper cert = CertificateWrapper.fromBytes(cryptoProvider, bytes);
-			isPrivateCertificate = cert.getSigningPrivateKey() != null;
+			isPrivateCertificate = cert.getSigningKeyPair() != null;
 			if (isPrivateCertificate) {
-				signingPrivateKey = cert.getSigningPrivateKey();
-				encryptionPrivateKey = cert.getEncryptionPrivateKey();
+				signingKeyPair = cert.getSigningKeyPair();
+				encryptionKeyPair = cert.getEncryptionPrivateKey();
 			}
 			signingPublicKey = cert.getSigningPublicKey();
 			encryptionPublicKey = cert.getEncryptionPublicKey();
@@ -117,8 +117,8 @@ public class MockCertificateStore {
 			ByteBuffer bb = ByteBuffer.allocate(1 + (ECDSAProvider.ECDSAPublicKeyEncodedLength) * certCount);
 			bb.put(certCount);
 			if (isPrivateCertificate) {
-				ecdsaProvider.encodePrivateKey(bb, signingPrivateKey);
-				ecdsaProvider.encodePrivateKey(bb, encryptionPrivateKey);
+				ecdsaProvider.encodePrivateKey(bb, signingKeyPair);
+				ecdsaProvider.encodePrivateKey(bb, encryptionKeyPair);
 			}
 
 			try {

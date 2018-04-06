@@ -172,7 +172,7 @@ public class IEEE1609p2MessageTest {
 		// verify that this is private certificate
 		CertificateWrapper clientCert = CertificateManager.get("Client");
 		assertNotNull(clientCert.getEncryptionPrivateKey());
-		assertNotNull(clientCert.getSigningPrivateKey());
+		assertNotNull(clientCert.getSigningKeyPair());
 		HashedId8 recipient = getSdcRecipient();
 		// prepare
 		CryptoProvider cryptoProvider = new CryptoProvider();
@@ -202,7 +202,7 @@ public class IEEE1609p2MessageTest {
 		assertNotNull(clientCert);
 		// verify that it is indeed public certificate that contains no private keys
 		assertNull(clientCert.getEncryptionPrivateKey());
-		assertNull(clientCert.getSigningPrivateKey());
+		assertNull(clientCert.getSigningKeyPair());
 		// decode and validate signed VehSitData message
 		msgRecv = IEEE1609p2Message.parse(signedVehSitData, cryptoProvider);
 		assertEquals(SignerIdentifier.digest_chosen, msgRecv.getSignerId().getChosenFlag());
@@ -384,14 +384,14 @@ public class IEEE1609p2MessageTest {
 		CertificateWrapper priCert = CertificateManager.get(certName);
 		assertNotNull(priCert);
 		assertNotNull(priCert.getEncryptionPrivateKey());
-		assertNotNull(priCert.getSigningPrivateKey());
+		assertNotNull(priCert.getSigningKeyPair());
 		CertificateManager.remove(certName);
 		assertNull(CertificateManager.get(certName));
 		assertNull(CertificateManager.get(priCert.getCertID8()));
 		// create public certificate from full certificate and add it to the store
 		CertificateWrapper pubCert = CertificateWrapper.fromBytes(cryptoProvider, priCert.getBytes());
 		assertNull(pubCert.getEncryptionPrivateKey());
-		assertNull(pubCert.getSigningPrivateKey());
+		assertNull(pubCert.getSigningKeyPair());
 		CertificateManager.put(certName, pubCert);
 	}
 	

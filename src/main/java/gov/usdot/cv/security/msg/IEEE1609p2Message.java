@@ -1,11 +1,11 @@
 package gov.usdot.cv.security.msg;
 
+import java.security.interfaces.ECPrivateKey;
 import java.util.Date;
 
 import org.apache.commons.codec.binary.Hex;
 import org.apache.log4j.Logger;
 import org.bouncycastle.crypto.InvalidCipherTextException;
-import org.bouncycastle.crypto.params.ECPrivateKeyParameters;
 import org.bouncycastle.crypto.params.ECPublicKeyParameters;
 import org.bouncycastle.crypto.params.KeyParameter;
 
@@ -42,6 +42,7 @@ import gov.usdot.asn1.generated.ieee1609dot2.ieee1609dot2basetypes.Uint8;
 import gov.usdot.cv.security.cert.CertificateException;
 import gov.usdot.cv.security.cert.CertificateManager;
 import gov.usdot.cv.security.cert.CertificateWrapper;
+import gov.usdot.cv.security.cert.SecureECPrivateKey;
 import gov.usdot.cv.security.clock.ClockHelper;
 import gov.usdot.cv.security.crypto.AESProvider;
 import gov.usdot.cv.security.crypto.CryptoException;
@@ -314,7 +315,7 @@ public class IEEE1609p2Message {
 	
 		HashedId8 msgCertId8 = msg.getSelfCertificate().getCertID8();
 		CertificateWrapper msgCert = CertificateManager.get(msgCertId8);
-		ECPrivateKeyParameters msgCertEncryptionPrivateKey = null;
+		SecureECPrivateKey msgCertEncryptionPrivateKey = null;
 		if (msgCert != null ) {
 			msgCertEncryptionPrivateKey = msgCert.getEncryptionPrivateKey();
 			if (msgCertEncryptionPrivateKey == null)
@@ -338,8 +339,9 @@ public class IEEE1609p2Message {
 																			(certRecipientInfo.getEncKey().getEciesBrainpoolP256r1());
 
 					try {
-						symmetricKey = cryptoProvider.getECIESProvider().decodeEciesP256EncryptedKey(eciesP256EncryptedKey, msgCertEncryptionPrivateKey);
-					} catch (InvalidCipherTextException ex) {
+						symmetricKey = cryptoProvider.getECIESProvider().decodeEciesP256EncryptedKey(
+						   eciesP256EncryptedKey, msgCertEncryptionPrivateKey);
+					} catch (Exception ex) {
 						log.error(String.format("Decoding symmetric key failed for %s. Reason: %s",
 													Hex.encodeHexString(msgCertId8.byteArrayValue()), ex.getMessage(), ex));
 					}
@@ -431,7 +433,7 @@ public class IEEE1609p2Message {
 		EcdsaP256SignatureWrapper ecdsaP256Signature = 
 									cryptoHelper.computeSignature(tbsDataBytes,
 																	certificateWrapper.getBytes(),
-																	certificateWrapper.getSigningPrivateKey());
+																	(ECPrivateKey) certificateWrapper.getSigningPrivateKey().getKey());
 		Signature signature = ecdsaP256Signature.encode();
 		
 		// Package them all together as Ieee1609Dot2Data with SignedData Content
