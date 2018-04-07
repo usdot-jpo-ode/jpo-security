@@ -8,7 +8,15 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.interfaces.ECPrivateKey;
 import java.util.Arrays;
+
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
@@ -92,7 +100,7 @@ public class CertificateWrapperTest {
     @Test
     public void test()  throws DecoderException, CertificateException, IOException,
     							CryptoException, InvalidCipherTextException, DecodeFailedException,
-    							DecodeNotSupportedException, EncodeFailedException, EncodeNotSupportedException {
+    							DecodeNotSupportedException, EncodeFailedException, EncodeNotSupportedException, InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException {
     	testExplicit();
     	testEncrypted("Self", SelfCert, SelfCertPrivateKeyReconstructionValue, SigningPrivateKey);
     	testEncrypted("Client", ClientCert, ClientCertPrivateKeyReconstructionValue, SigningPrivateKey);
@@ -121,12 +129,13 @@ public class CertificateWrapperTest {
     																	throws DecoderException, CertificateException, IOException,
     																			CryptoException, InvalidCipherTextException,
     																			DecodeFailedException,DecodeNotSupportedException,
-    																			EncodeFailedException, EncodeNotSupportedException {
+    																			EncodeFailedException, EncodeNotSupportedException, InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException {
     	CryptoProvider cryptoProvider = new CryptoProvider();
     	byte[] certBytes = Hex.decodeHex(hexCert.toCharArray());
     	byte[] privateKeyReconstructionValueBytes = Hex.decodeHex(hexPrivateKeyReconstructionValue.toCharArray());
-    	byte[] seedPrivateKeyBytes = Hex.decodeHex(hexSeedPrivateKey.toCharArray());
-    	CertificateWrapper certificate = CertificateWrapper.fromBytes(cryptoProvider, certBytes, privateKeyReconstructionValueBytes, seedPrivateKeyBytes);
+    	SecureECPrivateKey seedPrivateKey = new SecureECPrivateKey();
+    	CertificateWrapper certificate = CertificateWrapper.fromBytes(cryptoProvider, certBytes, 
+    	      privateKeyReconstructionValueBytes, seedPrivateKey);
     	if(certificate != null) {
     		boolean isValid = certificate.isValid();
     		log.debug("Certificate is valid: " + isValid);
@@ -144,9 +153,9 @@ public class CertificateWrapperTest {
 			if ( publicCert != null ) {
 				assertTrue(publicCert.isValid());
 				CertificateManager.put(name + "-public", certificate);
-				assertNotNull(certificate.getSigningKeyPair());
+				assertNotNull(certificate.getSigningPrivateKey());
 				assertNotNull(certificate.getEncryptionPrivateKey());
-				assertNull(publicCert.getSigningKeyPair());
+				assertNull(publicCert.getSigningPrivateKey());
 				assertNull(publicCert.getEncryptionPrivateKey());
 				comparePublicKeys(ecdsaProvider, certificate.getSigningPublicKey(), publicCert.getSigningPublicKey());
 				comparePublicKeys(ecdsaProvider, certificate.getEncryptionPublicKey(), publicCert.getEncryptionPublicKey());
@@ -168,7 +177,7 @@ public class CertificateWrapperTest {
     	
 		final byte[] textBytes = "Hello, World!".getBytes();
 
-		EcdsaP256SignatureWrapper signature = ecdsaProvider.computeSignature(textBytes,  certificate.getBytes(), certificate.getSigningKeyPair());
+		EcdsaP256SignatureWrapper signature = ecdsaProvider.computeSignature(textBytes,  certificate.getBytes(), (ECPrivateKey)certificate.getSigningPrivateKey().getKey());
 		boolean isSignatureValid = ecdsaProvider.verifySignature(textBytes, certificate.getBytes(), certificate.getSigningPublicKey(), signature);
 		log.debug("Is Signarure Valid: " + isSignatureValid);
 		assertTrue(isSignatureValid);
@@ -176,7 +185,7 @@ public class CertificateWrapperTest {
     
     public void testEncryptionKeyPair(CryptoProvider cryptoProvider, CertificateWrapper certificate)
     											throws InvalidCipherTextException, CryptoException,
-    													EncodeFailedException, EncodeNotSupportedException {
+    													EncodeFailedException, EncodeNotSupportedException, InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException {
     	assertNotNull(cryptoProvider);
     	assertNotNull(certificate);
     	
@@ -192,7 +201,8 @@ public class CertificateWrapperTest {
 		EciesP256EncryptedKey eciesP256EncryptedKey = eciesProvider.encodeEciesP256EncryptedKey(symmetricKey, certificate.getEncryptionPublicKey());
 		
 		// decode and decrypt the key
-		KeyParameter symmetricKey2 = eciesProvider.decodeEciesP256EncryptedKey(eciesP256EncryptedKey, certificate.getEncryptionPrivateKey());
+		KeyParameter symmetricKey2 = eciesProvider.decodeEciesP256EncryptedKey(eciesP256EncryptedKey, 
+		      (SecureECPrivateKey)certificate.getEncryptionPrivateKey());
 		assertNotNull(symmetricKey2);
 		log.debug(Hex.encodeHexString(symmetricKey2.getKey()));
 		

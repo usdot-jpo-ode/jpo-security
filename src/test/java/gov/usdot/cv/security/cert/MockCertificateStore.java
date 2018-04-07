@@ -1,6 +1,10 @@
 package gov.usdot.cv.security.cert;
 
 import java.nio.ByteBuffer;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.KeyStore;
+import java.security.interfaces.ECPrivateKey;
 import java.util.Arrays;
 import java.util.Date;
 
@@ -55,9 +59,10 @@ public class MockCertificateStore {
 			isPrivateCertificate = true;
 			ecdsaProvider = cryptoProvider.getSigner();
 
-			AsymmetricCipherKeyPair signingKeyPair = ecdsaProvider.generateKeyPair();
-			signingKeyPair = (ECPrivateKeyParameters) signingKeyPair.getPrivate();
-			signingPublicKey = (ECPublicKeyParameters) signingKeyPair.getPublic();
+			ECPrivateKey reconstructedPrivateKey = (ECPrivateKey) KeyPairGenerator.getInstance("ECDSA").generateKeyPair().getPrivate();
+			signingPrivateKey = new SecureECPrivateKey(KeyStore.getInstance(KeyStore.getDefaultType()),
+			      reconstructedPrivateKey);
+			signingPublicKey = (ECPublicKeyParameters) ecdsaProvider.generateKeyPair().getPublic();
 
 			AsymmetricCipherKeyPair encryptKeyPair = ecdsaProvider.generateKeyPair();
 			encryptionKeyPair = (ECPrivateKeyParameters) encryptKeyPair.getPrivate();

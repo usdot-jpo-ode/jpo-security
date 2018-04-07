@@ -57,7 +57,7 @@ public class FileCertificateStoreTest {
 		assertNotNull(cert.getEncryptionPublicKey());
 		assertNotNull(cert.getSigningPublicKey());
 		assertNull(cert.getEncryptionPrivateKey());
-		assertNull(cert.getSigningKeyPair());
+		assertNull(cert.getSigningPrivateKey());
 	}
 	
 	@Test
@@ -67,13 +67,14 @@ public class FileCertificateStoreTest {
 		FileCertificateStore.load(new CryptoProvider(), 
 		   CertificateWrapper.getSelfCertificateFriendlyName(), 
 				Paths.get(certsFolder, selfCert),
-				Paths.get(certsFolder, selfCertPrivateKeyReconstructionValue));
+				Paths.get(certsFolder, selfCertPrivateKeyReconstructionValue),
+				new SecureECPrivateKey());
 		CertificateWrapper cert = CertificateManager.get("Self");
 		assertNotNull(cert);
 		assertNotNull(cert.getEncryptionPublicKey());
 		assertNotNull(cert.getSigningPublicKey());
 		assertNotNull(cert.getEncryptionPrivateKey());
-		assertNotNull(cert.getSigningKeyPair());
+		assertNotNull(cert.getSigningPrivateKey());
 	}
 	
 	@Test
@@ -85,10 +86,12 @@ public class FileCertificateStoreTest {
 		FileCertificateStore.load(cryptoProvider, "PCA", Paths.get(certsFolder, pcaCert));
 		FileCertificateStore.load(new CryptoProvider(), "Self", 
 				Paths.get(certsFolder, selfCert),
-				Paths.get(certsFolder, selfCertPrivateKeyReconstructionValue));
+				Paths.get(certsFolder, selfCertPrivateKeyReconstructionValue),
+            new SecureECPrivateKey());
 		FileCertificateStore.load(new CryptoProvider(), "Client", 
                 Paths.get(certsFolder, clientCert),
-                Paths.get(certsFolder, clientCertPrivateKeyReconstructionValue));
+                Paths.get(certsFolder, clientCertPrivateKeyReconstructionValue),
+                new SecureECPrivateKey());
 		
 		decrypt(encryptedTestString, cryptoProvider);
 		encrypt(testString, cryptoProvider);
