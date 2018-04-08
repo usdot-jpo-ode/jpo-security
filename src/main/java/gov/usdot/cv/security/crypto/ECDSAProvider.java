@@ -1,6 +1,7 @@
 package gov.usdot.cv.security.crypto;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.security.InvalidAlgorithmParameterException;
@@ -16,6 +17,7 @@ import org.bouncycastle.asn1.ASN1InputStream;
 import org.bouncycastle.asn1.ASN1Integer;
 import org.bouncycastle.asn1.ASN1Primitive;
 import org.bouncycastle.asn1.ASN1Sequence;
+import org.bouncycastle.asn1.DERSequenceGenerator;
 import org.bouncycastle.asn1.nist.NISTNamedCurves;
 import org.bouncycastle.asn1.x9.X9ECParameters;
 import org.bouncycastle.crypto.AsymmetricCipherKeyPair;
@@ -49,7 +51,11 @@ import gov.usdot.cv.security.util.Ieee1609dot2Helper;
  */
 public class ECDSAProvider {
 
-   private static final Logger log = Logger.getLogger(ECDSAProvider.class);
+   public static final Logger log = Logger.getLogger(ECDSAProvider.class);
+
+   public static final String KEYPAIR_GENERATION_ALGORTHM_SPECS = "prime256v1";
+   public static final String KEYPAIR_GENERATION_ALGORITHM = "ECDSA";
+   public static final String SIGNATURE_ALGORITHM = "NONEwithECDSA";
 
    /**
     * Length of the encoded ECDSA public key in bytes
@@ -148,7 +154,7 @@ public class ECDSAProvider {
 
       try {
          if (ecdsaSigner == null) {
-            ecdsaSigner = Signature.getInstance("NONEwithECDSA", signingPrivateKey.getKeyStore().getProvider());
+            ecdsaSigner = Signature.getInstance(SIGNATURE_ALGORITHM, signingPrivateKey.getKeyStore().getProvider());
          }
          ecdsaSigner.initSign((PrivateKey) signingPrivateKey.getKey(), CryptoProvider.getSecureRandom());
    
@@ -213,6 +219,7 @@ public class ECDSAProvider {
       byte[] inputHashConcat = ByteArrayHelper.concat(tbsBytesHash, certBytesHash);
       byte[] inputHash = cryptoProvider.computeDigest(inputHashConcat);
       return inputHash;
+//      return inputHashConcat;
    }
 
    /**
@@ -291,6 +298,23 @@ public class ECDSAProvider {
       }
 
       return eccP256CurvePoint;
+   }
+
+   /**
+    * Encodes the R and S values of ECDSA signature into  ASN.1 DER encoding.
+    * @param r
+    * @param S
+    * @return
+    * @throws Exception
+    */
+   public static byte[] encodeECDSASignature(BigInteger r, BigInteger s) throws Exception {
+      ByteArrayOutputStream baos = new ByteArrayOutputStream();
+      
+      DERSequenceGenerator seq = new DERSequenceGenerator(baos);
+      seq.addObject(new ASN1Integer(r));
+      seq.addObject(new ASN1Integer(s));
+      seq.close();
+      return s.toByteArray(); 
    }
 
    /**

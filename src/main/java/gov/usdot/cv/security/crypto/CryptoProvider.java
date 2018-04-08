@@ -2,6 +2,7 @@ package gov.usdot.cv.security.crypto;
 
 import java.security.SecureRandom;
 
+import org.apache.log4j.Logger;
 import org.bouncycastle.crypto.digests.SHA256Digest;
 import org.bouncycastle.crypto.prng.ThreadedSeedGenerator;
 
@@ -12,7 +13,13 @@ import org.bouncycastle.crypto.prng.ThreadedSeedGenerator;
  */
 public class CryptoProvider {
 
-	private static final SecureRandom secureRandom = new SecureRandom();
+
+   private static final Logger log = Logger.getLogger(CryptoProvider.class);
+
+   public static final String ENCRYPTION_ALGORITHM = "ECIES";
+
+
+   private static final SecureRandom secureRandom = new SecureRandom();
 	
 	private SHA256Digest digest = null;
 	private AESProvider symmetricCipher = null;
