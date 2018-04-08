@@ -1,6 +1,5 @@
 package gov.usdot.cv.security.crypto;
 
-import java.security.Provider;
 import java.security.SecureRandom;
 
 import org.bouncycastle.crypto.digests.SHA256Digest;
@@ -76,8 +75,9 @@ public class CryptoProvider {
 	/**
 	 * Retrieves ECDSA cryptographic provider
 	 * @return ECDSA cryptographic provider
+	 * @throws CryptoException 
 	 */
-	public synchronized ECDSAProvider getSigner() {
+	public synchronized ECDSAProvider getECDSAProvider() throws CryptoException {
 		if ( ecdsaProvider == null )
 			ecdsaProvider = new ECDSAProvider(this);
 		return ecdsaProvider;
@@ -86,8 +86,9 @@ public class CryptoProvider {
 	/**
 	 * Retrieves ECIES cryptographic provider
 	 * @return ECIES cryptographic provider
+	 * @throws CryptoException 
 	 */
-	public synchronized ECIESProvider getECIESProvider() {
+	public synchronized ECIESProvider getECIESProvider() throws CryptoException {
 		if ( eciesProvider == null )
 			eciesProvider = new ECIESProvider(this);
 		return eciesProvider;

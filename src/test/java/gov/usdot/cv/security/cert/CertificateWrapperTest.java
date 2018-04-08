@@ -11,7 +11,6 @@ import java.nio.file.Paths;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-import java.security.interfaces.ECPrivateKey;
 import java.util.Arrays;
 
 import javax.crypto.BadPaddingException;
@@ -146,7 +145,7 @@ public class CertificateWrapperTest {
     		testSigningKeyPair(cryptoProvider, certificate);
     		testEncryptionKeyPair(cryptoProvider, certificate);
 
-    		ECDSAProvider ecdsaProvider = cryptoProvider.getSigner();
+    		ECDSAProvider ecdsaProvider = cryptoProvider.getECDSAProvider();
     		
 			byte[] publicCertBytes = certificate.getBytes();
 			CertificateWrapper publicCert = CertificateWrapper.fromBytes(cryptoProvider, publicCertBytes);
@@ -170,14 +169,15 @@ public class CertificateWrapperTest {
 		assertTrue( "Public keys match", encodedPublicKey1.equalTo(encodedPublicKey2));
     }
     
-    private void testSigningKeyPair(CryptoProvider cryptoProvider, CertificateWrapper certificate) {
+    private void testSigningKeyPair(CryptoProvider cryptoProvider, CertificateWrapper certificate) throws CryptoException {
     	assertNotNull(cryptoProvider);
     	assertNotNull(certificate);
-    	ECDSAProvider ecdsaProvider = cryptoProvider.getSigner();
+    	ECDSAProvider ecdsaProvider = cryptoProvider.getECDSAProvider();
     	
 		final byte[] textBytes = "Hello, World!".getBytes();
 
-		EcdsaP256SignatureWrapper signature = ecdsaProvider.computeSignature(textBytes,  certificate.getBytes(), (ECPrivateKey)certificate.getSigningPrivateKey().getKey());
+		EcdsaP256SignatureWrapper signature = ecdsaProvider.computeSignature(textBytes,  
+		      certificate.getBytes(), certificate.getSigningPrivateKey());
 		boolean isSignatureValid = ecdsaProvider.verifySignature(textBytes, certificate.getBytes(), certificate.getSigningPublicKey(), signature);
 		log.debug("Is Signarure Valid: " + isSignatureValid);
 		assertTrue(isSignatureValid);

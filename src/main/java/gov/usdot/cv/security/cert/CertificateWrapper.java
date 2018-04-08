@@ -414,7 +414,7 @@ public class CertificateWrapper {
          CrlSeries crlSeries = toBeSigned.getCrlSeries();
          log.debug("CrlSeries: " + crlSeries.intValue());
 
-         ECDSAProvider ecdsaProvider = this.cryptoProvider.getSigner();
+         ECDSAProvider ecdsaProvider = this.cryptoProvider.getECDSAProvider();
 
          // If the certificate is explicit & Self signed, it is a root certificate
          boolean isRootCA = (certType == CertificateType.explicit) && (certificate.getIssuer().hasSelf());

@@ -3,7 +3,9 @@ package gov.usdot.cv.security.crypto;
 import java.io.ByteArrayInputStream;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
-import java.security.Provider;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
 import java.security.Signature;
 import java.security.interfaces.ECPrivateKey;
 
@@ -22,7 +24,6 @@ import org.bouncycastle.crypto.params.ECDomainParameters;
 import org.bouncycastle.crypto.params.ECKeyGenerationParameters;
 import org.bouncycastle.crypto.params.ECPrivateKeyParameters;
 import org.bouncycastle.crypto.params.ECPublicKeyParameters;
-import org.bouncycastle.crypto.params.ParametersWithRandom;
 import org.bouncycastle.crypto.signers.ECDSASigner;
 import org.bouncycastle.math.ec.ECCurve;
 import org.bouncycastle.math.ec.ECFieldElement;
@@ -36,6 +37,7 @@ import com.oss.asn1.OctetString;
 
 import gov.usdot.asn1.generated.ieee1609dot2.ieee1609dot2basetypes.EccP256CurvePoint;
 import gov.usdot.cv.security.cert.CertificateWrapper;
+import gov.usdot.cv.security.cert.SecureECPrivateKey;
 import gov.usdot.cv.security.util.ByteArrayHelper;
 import gov.usdot.cv.security.util.Ieee1609dot2Helper;
 
@@ -62,50 +64,69 @@ public class ECDSAProvider {
    private static final byte[] nullPublicKey = new byte[ECDSAPublicKeyEncodedLength];
 
    private final CryptoProvider cryptoProvider;
-   private final ECDSASigner ecdsaSigner;
+//   private final ECDSASigner ecdsaSigner;
+   private Signature ecdsaSigner;
+   private final ECDSASigner ecdsaVerifier;
    private final ECKeyPairGenerator ecdsaKeyGenerator;
    private final ECCurve ecdsaEllipticCurve;
    private final ECDomainParameters ecdsaDomainParameters;
-
-   private Provider jceProvider;
-   private Signature jceSigner;
-
-   /**
-    * Instantiates ECDSA provider with new cryptographic provider
-    * @param provider 
-    */
-   public ECDSAProvider(Provider provider) {
-      this(new CryptoProvider());
-      this.jceProvider = provider;
-   }
 
    /**
     * Instantiates ECDSA provider
     * 
     * @param cryptoProvider
     *           cryptographic provider to use
+    * @throws NoSuchAlgorithmException 
+    * @throws InvalidAlgorithmParameterException 
     */
-   public ECDSAProvider(CryptoProvider cryptoProvider) {
-      this.cryptoProvider = cryptoProvider;
-      X9ECParameters curveX9ECParameters = NISTNamedCurves.getByName("P-256");
-      ecdsaEllipticCurve = curveX9ECParameters.getCurve();
-      ecdsaDomainParameters = new ECDomainParameters(ecdsaEllipticCurve, curveX9ECParameters.getG(),
-            curveX9ECParameters.getN(), curveX9ECParameters.getH());
-      ECKeyGenerationParameters ecdsaKeyGenParameters = new ECKeyGenerationParameters(ecdsaDomainParameters,
-            CryptoProvider.getSecureRandom());
-      ecdsaKeyGenerator = new ECKeyPairGenerator();
-      ecdsaKeyGenerator.init(ecdsaKeyGenParameters);
-      ecdsaSigner = new ECDSASigner();
-      
+   public ECDSAProvider(CryptoProvider cryptoProvider) throws CryptoException {
       try {
-         jceSigner = Signature.getInstance("NONEwithECDSA", jceProvider);
-         jceSigner.initSign(null);
+         this.cryptoProvider = cryptoProvider;
+         X9ECParameters curveX9ECParameters = NISTNamedCurves.getByName("P-256");
+         ecdsaEllipticCurve = curveX9ECParameters.getCurve();
+         ecdsaDomainParameters = new ECDomainParameters(ecdsaEllipticCurve, curveX9ECParameters.getG(),
+               curveX9ECParameters.getN(), curveX9ECParameters.getH());
+         ECKeyGenerationParameters ecdsaKeyGenParameters = new ECKeyGenerationParameters(ecdsaDomainParameters,
+               CryptoProvider.getSecureRandom());
+         ecdsaKeyGenerator = new ECKeyPairGenerator();
+         ecdsaKeyGenerator.init(ecdsaKeyGenParameters);
+
+//         ecdsaSigner = new ECDSASigner();
+         ecdsaVerifier = new ECDSASigner();
       } catch (Exception e) {
-         log.error("Error initializing jceSigner", e);
+         throw new CryptoException("Error initializing!", e);
       }
-
    }
+   
+//   /**
+//    * Computes wrapped message signature
+//    * 
+//    * @param toBeSignedDataBytes
+//    *           bytes of the ToBeSignedData
+//    * @param signingCertificateBytes
+//    *           bytes of the certificate performing the signing
+//    * @param signingPrivateKey
+//    *           private signing key to use
+//    * @return message signature
+//    */
+//   public EcdsaP256SignatureWrapper computeSignature(
+//      byte[] toBeSignedDataBytes,
+//      byte[] signingCertificateBytes,
+//      ECPrivateKeyParameters signingPrivateKey) {
+//      if (toBeSignedDataBytes == null || signingCertificateBytes == null) {
+//         return null;
+//      }
+//
+//      byte[] inputHash = computeDigest(toBeSignedDataBytes, signingCertificateBytes);
+//
+//      ecdsaSigner.init(true, new ParametersWithRandom(signingPrivateKey, CryptoProvider.getSecureRandom()));
+//
+//      BigInteger[] signatureValue = ecdsaSigner.generateSignature(inputHash);
+//
+//      return new EcdsaP256SignatureWrapper(signatureValue[0], signatureValue[1]);
+//   }
 
+   
    /**
     * Computes wrapped message signature
     * 
@@ -120,51 +141,32 @@ public class ECDSAProvider {
    public EcdsaP256SignatureWrapper computeSignature(
       byte[] toBeSignedDataBytes,
       byte[] signingCertificateBytes,
-      ECPrivateKeyParameters signingPrivateKey) {
+      SecureECPrivateKey signingPrivateKey) {
       if (toBeSignedDataBytes == null || signingCertificateBytes == null) {
          return null;
       }
 
-      byte[] inputHash = computeDigest(toBeSignedDataBytes, signingCertificateBytes);
-
-      ecdsaSigner.init(true, new ParametersWithRandom(signingPrivateKey, CryptoProvider.getSecureRandom()));
-
-      BigInteger[] signatureValue = ecdsaSigner.generateSignature(inputHash);
-
-      return new EcdsaP256SignatureWrapper(signatureValue[0], signatureValue[1]);
-   }
-
-   /**
-    * Computes wrapped message signature
-    * 
-    * @param toBeSignedDataBytes
-    *           bytes of the ToBeSignedData
-    * @param signingCertificateBytes
-    *           bytes of the certificate performing the signing
-    * @param signingPrivateKey
-    *           private signing key to use
-    * @return message signature
-    */
-   public EcdsaP256SignatureWrapper computeSignature(
-      byte[] toBeSignedDataBytes,
-      byte[] signingCertificateBytes,
-      ECPrivateKey signingPrivateKey) {
-      if (toBeSignedDataBytes == null || signingCertificateBytes == null) {
-         return null;
-      }
-
-      byte[] inputHash = computeDigest(toBeSignedDataBytes, signingCertificateBytes);
-      EcdsaP256SignatureWrapper signatureWraper = null;
       try {
-         jceSigner.update(inputHash);
-         byte[] signature = jceSigner.sign();
-         BigInteger[] signatureValue = decodeECDSASignature(signature);
-         signatureWraper = new EcdsaP256SignatureWrapper(signatureValue[0], signatureValue[1]);
+         if (ecdsaSigner == null) {
+            ecdsaSigner = Signature.getInstance("NONEwithECDSA", signingPrivateKey.getKeyStore().getProvider());
+         }
+         ecdsaSigner.initSign((PrivateKey) signingPrivateKey.getKey(), CryptoProvider.getSecureRandom());
+   
+         byte[] inputHash = computeDigest(toBeSignedDataBytes, signingCertificateBytes);
+         EcdsaP256SignatureWrapper signatureWraper = null;
+         try {
+            ecdsaSigner.update(inputHash);
+            byte[] signature = ecdsaSigner.sign();
+            BigInteger[] signatureValue = decodeECDSASignature(signature);
+            signatureWraper = new EcdsaP256SignatureWrapper(signatureValue[0], signatureValue[1]);
+         } catch (Exception e) {
+            log.error("Error signing data", e);
+         }
+   
+         return signatureWraper;
       } catch (Exception e) {
-         log.error("Error signing data", e);
+         throw new SecurityException("Error signing data!", e);
       }
-
-      return signatureWraper;
    }
 
    /**
@@ -191,9 +193,9 @@ public class ECDSAProvider {
 
       byte[] inputHash = computeDigest(toBeSignedDataBytes, signingCertificateBytes);
 
-      ecdsaSigner.init(false, signingPublicKey);
+      ecdsaVerifier.init(false, signingPublicKey);
 
-      return ecdsaSigner.verifySignature(inputHash, signature.getR(), signature.getS());
+      return ecdsaVerifier.verifySignature(inputHash, signature.getR(), signature.getS());
    }
 
    /**
@@ -322,14 +324,14 @@ public class ECDSAProvider {
     * 
     * @param byteBuffer
     *           buffer to encode into
-    * @param privateKey
+    * @param signingPrivateKey
     *           private key to encode
     * @return true if encoding succeeds and false otherwise
     */
-   public boolean encodePrivateKey(ByteBuffer byteBuffer, ECPrivateKeyParameters privateKey) {
+   public boolean encodePrivateKey(ByteBuffer byteBuffer, ECPrivateKey signingPrivateKey) {
       byte[] keyBytes;
-      if (privateKey != null) {
-         keyBytes = privateKey.getD().toByteArray();
+      if (signingPrivateKey != null) {
+         keyBytes = decodePrivateKey(signingPrivateKey).getD().toByteArray();
          assert (keyBytes != null);
          if (keyBytes.length == ECDSAPrivateKeyEncodedLength) {
             byteBuffer.put(keyBytes);
@@ -483,7 +485,7 @@ public class ECDSAProvider {
       return ecdsaKeyGenerator.generateKeyPair();
    }
 
-   public static BigInteger[] decodeECDSASignature(byte[] signature) throws Exception {
+   public static BigInteger[] decodeECDSASignature(byte[] signature) throws CryptoException {
       BigInteger[] sigs = new BigInteger[2];
       ByteArrayInputStream inStream = new ByteArrayInputStream(signature);
       try (ASN1InputStream asnInputStream = new ASN1InputStream(inStream)){
@@ -510,7 +512,7 @@ public class ECDSAProvider {
                      Hex.encodeHexString(signature)));
          }
       } catch (Exception e) {
-         log.error("Error decoding encoded signature", e);
+         throw new CryptoException("Error decoding encoded signature", e);
       }
       return sigs;
    }

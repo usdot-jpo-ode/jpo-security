@@ -1,6 +1,5 @@
 package gov.usdot.cv.security.msg;
 
-import java.security.interfaces.ECPrivateKey;
 import java.util.Date;
 
 import org.apache.commons.codec.binary.Hex;
@@ -208,12 +207,11 @@ public class IEEE1609p2Message {
 	 * @return IEEE1609p2Message instance
 	 * @throws MessageException if bytes do not represent an IEEE 1609.2 Message
 	 * @throws CertificateException if certificate in the message is not valid
-	 * @throws EncodeNotSupportedException if encoding is not supported
-	 * @throws EncodeFailedException if encoding failed 
+	 * @throws CryptoException 
 	 */
 	static private IEEE1609p2Message parseSigned(SignedData signedData, CryptoProvider cryptoProvider)
 																	throws MessageException, CertificateException, 
-																			EncodeFailedException, EncodeNotSupportedException {
+																			EncodeFailedException, EncodeNotSupportedException, CryptoException {
 		
 		IEEE1609p2Message msg = new IEEE1609p2Message(cryptoProvider);
 		
@@ -277,7 +275,7 @@ public class IEEE1609p2Message {
 		try {
 			byte[] tbsDataBytes = Ieee1609dot2Helper.encodeCOER(tbsData);
 			byte[] signingCertificateBytes = msg.certificateWrapper.getBytes();
-			EcdsaP256SignatureWrapper signature = EcdsaP256SignatureWrapper.decode(signedData.getSignature(), cryptoProvider.getSigner());
+			EcdsaP256SignatureWrapper signature = EcdsaP256SignatureWrapper.decode(signedData.getSignature(), cryptoProvider.getECDSAProvider());
 			ECPublicKeyParameters signingPublicKey = msg.certificateWrapper.getSigningPublicKey();
 			if ( !msg.cryptoHelper.verifySignature(tbsDataBytes, signingCertificateBytes, signingPublicKey, signature) ) {
 				log.error("Message signature is not valid");
@@ -433,7 +431,7 @@ public class IEEE1609p2Message {
 		EcdsaP256SignatureWrapper ecdsaP256Signature = 
 									cryptoHelper.computeSignature(tbsDataBytes,
 																	certificateWrapper.getBytes(),
-																	(ECPrivateKey) certificateWrapper.getSigningPrivateKey().getKey());
+																	certificateWrapper.getSigningPrivateKey());
 		Signature signature = ecdsaP256Signature.encode();
 		
 		// Package them all together as Ieee1609Dot2Data with SignedData Content

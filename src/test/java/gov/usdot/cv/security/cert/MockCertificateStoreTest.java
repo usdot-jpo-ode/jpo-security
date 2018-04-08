@@ -5,13 +5,13 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import org.apache.log4j.Logger;
-import org.bouncycastle.crypto.params.ECPrivateKeyParameters;
 import org.bouncycastle.crypto.params.ECPublicKeyParameters;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import gov.usdot.cv.security.crypto.CryptoException;
 import gov.usdot.cv.security.crypto.CryptoHelper;
 import gov.usdot.cv.security.crypto.CryptoProvider;
 import gov.usdot.cv.security.crypto.EcdsaP256SignatureWrapper;
@@ -39,18 +39,19 @@ public class MockCertificateStoreTest {
 	}
 
 	@Test
-	public void testCreate() {
+	public void testCreate() throws CryptoException {
 		CryptoHelper helper = new CryptoHelper();
 		
 		final String pcaNamePrivate = "PCA-private";
 		CertificateWrapper pcaPrivateCert = CertificateManager.get(pcaNamePrivate);
 		assertNotNull(pcaPrivateCert);
-		ECPrivateKeyParameters pcaSigningPrivateKey = pcaPrivateCert.getSigningKeyPair();
+		SecureECPrivateKey pcaSigningPrivateKey = pcaPrivateCert.getSigningPrivateKey();
 		assertNotNull(pcaSigningPrivateKey);
 		
 		byte[] bytes = "Hello, World".getBytes();
 
-		EcdsaP256SignatureWrapper signature = helper.computeSignature(bytes, pcaPrivateCert.getBytes(), pcaSigningPrivateKey);
+		EcdsaP256SignatureWrapper signature = helper.computeSignature(bytes, pcaPrivateCert.getBytes(), 
+		      pcaSigningPrivateKey);
 		assertNotNull(signature);
 		
 		final String pcaNamePublic = "PCA";

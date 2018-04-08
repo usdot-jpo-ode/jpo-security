@@ -6,10 +6,16 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertEquals;
 
+import java.io.IOException;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
 import java.util.ArrayList;
 import java.util.List;
 
 import gov.usdot.asn1.generated.ieee1609dot2.ieee1609dot2basetypes.HashedId8;
+import gov.usdot.cv.security.crypto.CryptoException;
 import gov.usdot.cv.security.util.UnitTestHelper;
 
 import org.apache.commons.codec.DecoderException;
@@ -32,7 +38,7 @@ public class CertificateManagerTest {
 	}
 
 	@Test
-	public void testCertificatesMap() throws DecoderException, EncodeFailedException, EncodeNotSupportedException {
+	public void testCertificatesMap() throws DecoderException, EncodeFailedException, EncodeNotSupportedException, NoSuchAlgorithmException, KeyStoreException, CryptoException, InvalidAlgorithmParameterException, CertificateException, IOException {
 		final String selfName = "Self";
 		final String pcaName = "PCA";
 		CertificateWrapper pcaCert = CertificateManager.get(pcaName);
@@ -72,7 +78,7 @@ public class CertificateManagerTest {
 	}
 	
 	@Test
-	public void testRevocationList() throws DecoderException, EncodeFailedException, EncodeNotSupportedException {
+	public void testRevocationList() throws DecoderException, EncodeFailedException, EncodeNotSupportedException, NoSuchAlgorithmException, KeyStoreException, CryptoException, InvalidAlgorithmParameterException, CertificateException, IOException {
 
 		CertificateWrapper pcaCert = MockCertificateStore.createCertificates()[publicCert];
 		assertNotNull(pcaCert);

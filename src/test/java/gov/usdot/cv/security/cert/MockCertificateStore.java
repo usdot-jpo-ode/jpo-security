@@ -1,15 +1,15 @@
 package gov.usdot.cv.security.cert;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.security.KeyPair;
-import java.security.KeyPairGenerator;
-import java.security.KeyStore;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
 import java.security.interfaces.ECPrivateKey;
 import java.util.Arrays;
 import java.util.Date;
 
-import org.bouncycastle.crypto.AsymmetricCipherKeyPair;
-import org.bouncycastle.crypto.params.ECPrivateKeyParameters;
 import org.bouncycastle.crypto.params.ECPublicKeyParameters;
 
 import com.oss.asn1.EncodeFailedException;
@@ -20,23 +20,24 @@ import gov.usdot.cv.security.crypto.CryptoException;
 import gov.usdot.cv.security.crypto.CryptoProvider;
 import gov.usdot.cv.security.crypto.ECDSAProvider;
 import gov.usdot.cv.security.util.Ieee1609dot2Helper;
+import gov.usdot.cv.security.util.UnitTestHelper;
 
 public class MockCertificateStore {
 
-	static public void addTestCertificates() throws EncodeFailedException, EncodeNotSupportedException {
+	static public void addTestCertificates() throws EncodeFailedException, EncodeNotSupportedException, NoSuchAlgorithmException, KeyStoreException, CryptoException, InvalidAlgorithmParameterException, CertificateException, IOException {
 		addCertificates("PCA", "PCA-private");
 		addCertificates("Self-public", "Self-private");
 		addCertificates("Client-public", "Client-private");
 	}
 
 	static public void addCertificates(String publicCertificateName, String privateCertificateName)
-			throws EncodeFailedException, EncodeNotSupportedException {
+			throws EncodeFailedException, EncodeNotSupportedException, NoSuchAlgorithmException, KeyStoreException, CryptoException, InvalidAlgorithmParameterException, CertificateException, IOException {
 		CertificateWrapper[] certificates = createCertificates();
 		CertificateManager.put(privateCertificateName, certificates[0]);
 		CertificateManager.put(publicCertificateName, certificates[1]);
 	}
 
-	static public CertificateWrapper[] createCertificates() throws EncodeFailedException, EncodeNotSupportedException {
+	static public CertificateWrapper[] createCertificates() throws EncodeFailedException, EncodeNotSupportedException, NoSuchAlgorithmException, KeyStoreException, CryptoException, InvalidAlgorithmParameterException, CertificateException, IOException {
 		CryptoProvider cryptoProvider = new CryptoProvider();
 		MockCertificate privateCertificate = new MockCertificate(cryptoProvider);
 		MockCertificate publicCertificate = new MockCertificate(privateCertificate);
@@ -53,20 +54,24 @@ public class MockCertificateStore {
 		 * 
 		 * @param cryptoProvider
 		 *            to use for certificate generation
+		 * @throws NoSuchAlgorithmException 
+		 * @throws KeyStoreException 
+		 * @throws CryptoException 
+		 * @throws IOException 
+		 * @throws java.security.cert.CertificateException 
+		 * @throws InvalidAlgorithmParameterException 
 		 */
-		protected MockCertificate(CryptoProvider cryptoProvider) {
+		protected MockCertificate(CryptoProvider cryptoProvider) throws NoSuchAlgorithmException, KeyStoreException, CryptoException, InvalidAlgorithmParameterException, java.security.cert.CertificateException, IOException
+ {
 			super(cryptoProvider);
 			isPrivateCertificate = true;
-			ecdsaProvider = cryptoProvider.getSigner();
+			ecdsaProvider = cryptoProvider.getECDSAProvider();
 
-			ECPrivateKey reconstructedPrivateKey = (ECPrivateKey) KeyPairGenerator.getInstance("ECDSA").generateKeyPair().getPrivate();
-			signingPrivateKey = new SecureECPrivateKey(KeyStore.getInstance(KeyStore.getDefaultType()),
-			      reconstructedPrivateKey);
+			signingPrivateKey = UnitTestHelper.createUnsecurePrivateKey(UnitTestHelper.inMemoryKeyStore());
 			signingPublicKey = (ECPublicKeyParameters) ecdsaProvider.generateKeyPair().getPublic();
 
-			AsymmetricCipherKeyPair encryptKeyPair = ecdsaProvider.generateKeyPair();
-			encryptionKeyPair = (ECPrivateKeyParameters) encryptKeyPair.getPrivate();
-			encryptionPublicKey = (ECPublicKeyParameters) encryptKeyPair.getPublic();
+			encryptionPrivateKey = UnitTestHelper.createUnsecurePrivateKey(UnitTestHelper.inMemoryKeyStore());
+			encryptionPublicKey = (ECPublicKeyParameters) ecdsaProvider.generateKeyPair().getPublic();
 		}
 
 		/**
@@ -96,16 +101,18 @@ public class MockCertificateStore {
 		 * @throws CertificateException
 		 * @throws EncodeNotSupportedException
 		 * @throws EncodeFailedException
+		 * @throws CryptoException 
+		 * @throws gov.usdot.cv.security.cert.CertificateException 
 		 */
 		protected MockCertificate(CryptoProvider cryptoProvider, byte[] bytes)
-				throws CertificateException, EncodeFailedException, EncodeNotSupportedException {
+				throws CertificateException, EncodeFailedException, EncodeNotSupportedException, CryptoException, gov.usdot.cv.security.cert.CertificateException {
 			super(cryptoProvider);
-			ecdsaProvider = cryptoProvider.getSigner();
+			ecdsaProvider = cryptoProvider.getECDSAProvider();
 			CertificateWrapper cert = CertificateWrapper.fromBytes(cryptoProvider, bytes);
-			isPrivateCertificate = cert.getSigningKeyPair() != null;
+			isPrivateCertificate = cert.getSigningPrivateKey() != null;
 			if (isPrivateCertificate) {
-				signingKeyPair = cert.getSigningKeyPair();
-				encryptionKeyPair = cert.getEncryptionPrivateKey();
+				signingPrivateKey = cert.getSigningPrivateKey();
+				encryptionPrivateKey = cert.getEncryptionPrivateKey();
 			}
 			signingPublicKey = cert.getSigningPublicKey();
 			encryptionPublicKey = cert.getEncryptionPublicKey();
@@ -122,8 +129,8 @@ public class MockCertificateStore {
 			ByteBuffer bb = ByteBuffer.allocate(1 + (ECDSAProvider.ECDSAPublicKeyEncodedLength) * certCount);
 			bb.put(certCount);
 			if (isPrivateCertificate) {
-				ecdsaProvider.encodePrivateKey(bb, signingKeyPair);
-				ecdsaProvider.encodePrivateKey(bb, encryptionKeyPair);
+				ecdsaProvider.encodePrivateKey(bb, (ECPrivateKey) signingPrivateKey.getKey());
+				ecdsaProvider.encodePrivateKey(bb, (ECPrivateKey) encryptionPrivateKey.getKey());
 			}
 
 			try {

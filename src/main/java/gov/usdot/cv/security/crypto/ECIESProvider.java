@@ -45,8 +45,9 @@ public class ECIESProvider {
 
    /**
     * Instantiates ECIES provider with new crypto provider
+    * @throws CryptoException 
     */
-   public ECIESProvider() {
+   public ECIESProvider() throws CryptoException {
       this(new CryptoProvider());
    }
 
@@ -55,9 +56,10 @@ public class ECIESProvider {
     * 
     * @param cryptoProvider
     *           cryptographic provider to use
+    * @throws CryptoException 
     */
-   public ECIESProvider(CryptoProvider cryptoProvider) {
-      this.ecdsaProvider = cryptoProvider.getSigner();
+   public ECIESProvider(CryptoProvider cryptoProvider) throws CryptoException {
+      this.ecdsaProvider = cryptoProvider.getECDSAProvider();
       iesParameters = new IESWithCipherParameters(derivation, encoding, 128, 128);
       iesEngine = new IESEngine(new ECDHCBasicAgreement(), new KDF2BytesGenerator(new SHA256Digest()),
             new Ieee1609dot2Mac1(new SHA256Digest(), 16));
@@ -84,26 +86,26 @@ public class ECIESProvider {
       return iesEngine.processBlock(aesSymmetricEncryptionKeyBytes, 0, aesSymmetricEncryptionKeyBytes.length);
    }
 
-   /**
-    * ECIES decrypt encrypted symmetric encryption key and tag bytes
-    * 
-    * @param encryptedKeyAndTag
-    *           encrypted symmetric encryption key and tag bytes to decrypt
-    * @param ephemeralPublicKey
-    *           ephemeral public key
-    * @param recipientECCPrivateKey
-    *           recipient's asymmetric private key
-    * @return decrypted symmetric encryption key bytes
-    * @throws InvalidCipherTextException
-    *            if invalid cipher text
-    */
-   public byte[] decrypt(
-      byte[] encryptedKeyAndTag,
-      ECPublicKeyParameters ephemeralPublicKey,
-      ECPrivateKeyParameters recipientECCPrivateKey) throws InvalidCipherTextException {
-      iesEngine.init(false, recipientECCPrivateKey, ephemeralPublicKey, iesParameters);
-      return iesEngine.processBlock(encryptedKeyAndTag, 0, encryptedKeyAndTag.length);
-   }
+//   /**
+//    * ECIES decrypt encrypted symmetric encryption key and tag bytes
+//    * 
+//    * @param encryptedKeyAndTag
+//    *           encrypted symmetric encryption key and tag bytes to decrypt
+//    * @param ephemeralPublicKey
+//    *           ephemeral public key
+//    * @param recipientECCPrivateKey
+//    *           recipient's asymmetric private key
+//    * @return decrypted symmetric encryption key bytes
+//    * @throws InvalidCipherTextException
+//    *            if invalid cipher text
+//    */
+//   public byte[] decrypt(
+//      byte[] encryptedKeyAndTag,
+//      ECPublicKeyParameters ephemeralPublicKey,
+//      ECPrivateKeyParameters recipientECCPrivateKey) throws InvalidCipherTextException {
+//      iesEngine.init(false, recipientECCPrivateKey, ephemeralPublicKey, iesParameters);
+//      return iesEngine.processBlock(encryptedKeyAndTag, 0, encryptedKeyAndTag.length);
+//   }
 
    /**
     * @param encryptedSymmetricKeyAndTag
@@ -117,7 +119,7 @@ public class ECIESProvider {
     * @throws BadPaddingException
     * @throws IllegalBlockSizeException
     */
-   private byte[] decrypt(
+   public byte[] decrypt(
       byte[] encryptedSymmetricKeyAndTag,
       ECPublicKeyParameters ephemeralPublicKey,
       SecurePrivateKey recipientEnryptionPrivateKey) throws NoSuchAlgorithmException, NoSuchPaddingException,
@@ -179,39 +181,39 @@ public class ECIESProvider {
       return eciesP256EncryptedKey;
    }
 
-   /**
-    * Decodes EciesP256EncryptedKey
-    * 
-    * @param eciesP256EncryptedKey
-    *           encoded EciesP256EncryptedKey containing the encrypted key
-    * @param recipientEnryptionPrivateKey
-    *           recipient's asymmetric private key or null to skip decryption
-    * @return decrypted symmetric encryption key or null if
-    *         recipientEncryptionPrivateKey is null
-    * @throws InvalidCipherTextException
-    *            if decoding of the symmetric encryption key fails
-    */
-   public KeyParameter decodeEciesP256EncryptedKey(
-      EciesP256EncryptedKey eciesP256EncryptedKey,
-      ECPrivateKeyParameters recipientEnryptionPrivateKey) throws InvalidCipherTextException {
-
-      if (recipientEnryptionPrivateKey == null) {
-         return null;
-      }
-
-      ECPublicKeyParameters ephemeralPublicKey = ecdsaProvider.decodePublicKey(eciesP256EncryptedKey.getV());
-
-      OctetString encryptedSymmectricKey = eciesP256EncryptedKey.getC();
-      OctetString encryptedTag = eciesP256EncryptedKey.getT();
-
-      byte[] encryptedSymmetricKeyAndTag = ByteArrayHelper.concat(encryptedSymmectricKey.byteArrayValue(),
-         encryptedTag.byteArrayValue());
-
-      byte[] aesSymmetricEncryptionKeyBytes = decrypt(encryptedSymmetricKeyAndTag, ephemeralPublicKey,
-         recipientEnryptionPrivateKey);
-
-      return new KeyParameter(aesSymmetricEncryptionKeyBytes);
-   }
+//   /**
+//    * Decodes EciesP256EncryptedKey
+//    * 
+//    * @param eciesP256EncryptedKey
+//    *           encoded EciesP256EncryptedKey containing the encrypted key
+//    * @param recipientEnryptionPrivateKey
+//    *           recipient's asymmetric private key or null to skip decryption
+//    * @return decrypted symmetric encryption key or null if
+//    *         recipientEncryptionPrivateKey is null
+//    * @throws InvalidCipherTextException
+//    *            if decoding of the symmetric encryption key fails
+//    */
+//   public KeyParameter decodeEciesP256EncryptedKey(
+//      EciesP256EncryptedKey eciesP256EncryptedKey,
+//      ECPrivateKeyParameters recipientEnryptionPrivateKey) throws InvalidCipherTextException {
+//
+//      if (recipientEnryptionPrivateKey == null) {
+//         return null;
+//      }
+//
+//      ECPublicKeyParameters ephemeralPublicKey = ecdsaProvider.decodePublicKey(eciesP256EncryptedKey.getV());
+//
+//      OctetString encryptedSymmectricKey = eciesP256EncryptedKey.getC();
+//      OctetString encryptedTag = eciesP256EncryptedKey.getT();
+//
+//      byte[] encryptedSymmetricKeyAndTag = ByteArrayHelper.concat(encryptedSymmectricKey.byteArrayValue(),
+//         encryptedTag.byteArrayValue());
+//
+//      byte[] aesSymmetricEncryptionKeyBytes = decrypt(encryptedSymmetricKeyAndTag, ephemeralPublicKey,
+//         recipientEnryptionPrivateKey);
+//
+//      return new KeyParameter(aesSymmetricEncryptionKeyBytes);
+//   }
 
    public KeyParameter decodeEciesP256EncryptedKey(
       EciesP256EncryptedKey eciesP256EncryptedKey,

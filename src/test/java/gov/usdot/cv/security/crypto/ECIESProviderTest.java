@@ -3,12 +3,21 @@ package gov.usdot.cv.security.crypto;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import java.io.IOException;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
 import java.util.Arrays;
+
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 
 import org.apache.log4j.Logger;
 import org.bouncycastle.crypto.AsymmetricCipherKeyPair;
 import org.bouncycastle.crypto.InvalidCipherTextException;
-import org.bouncycastle.crypto.params.ECPrivateKeyParameters;
 import org.bouncycastle.crypto.params.ECPublicKeyParameters;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.util.encoders.Hex;
@@ -43,23 +52,24 @@ public class ECIESProviderTest {
 	}
 
 	@Test
-	public void testDirect() throws InvalidCipherTextException, CryptoException {
+	public void testDirect() throws InvalidCipherTextException, CryptoException, InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException, CertificateException, KeyStoreException, IOException {
 		CryptoProvider cryptoProvider = new CryptoProvider();
 		ECIESProvider eciesProvider = new ECIESProvider(cryptoProvider);
 				KeyParameter symmetricKey = AESProvider.generateKey();
 		assertNotNull(symmetricKey);
 		log.debug(Hex.toHexString(symmetricKey.getKey()));
-		AsymmetricCipherKeyPair recipientECCKey = cryptoProvider.getSigner().generateKeyPair();
+		AsymmetricCipherKeyPair recipientECCKey = cryptoProvider.getECDSAProvider().generateKeyPair();
 		EciesP256EncryptedKey encodedKey = eciesProvider.encodeEciesP256EncryptedKey(symmetricKey, (ECPublicKeyParameters) recipientECCKey.getPublic());
 
-		KeyParameter symmetricKey2 = eciesProvider.decodeEciesP256EncryptedKey(encodedKey, (ECPrivateKeyParameters) recipientECCKey.getPrivate());
+		KeyParameter symmetricKey2 = eciesProvider.decodeEciesP256EncryptedKey(encodedKey, 
+		      UnitTestHelper.createUnsecurePrivateKey(UnitTestHelper.inMemoryKeyStore()));
 		assertNotNull(symmetricKey2);
 		log.debug(Hex.toHexString(symmetricKey2.getKey()));
 		assertTrue(Arrays.equals(symmetricKey.getKey(), symmetricKey2.getKey()));
 	}
 	
 	@Test
-	public void testUseCase() throws InvalidCipherTextException, CryptoException, EncodeFailedException, EncodeNotSupportedException {
+	public void testUseCase() throws InvalidCipherTextException, CryptoException, EncodeFailedException, EncodeNotSupportedException, InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException {
 		// sending side
 		KeyParameter symmetricKey = AESProvider.generateKey();
 		assertNotNull(symmetricKey);
@@ -84,7 +94,7 @@ public class ECIESProviderTest {
 		return eciesProvider.encodeEciesP256EncryptedKey(symmetricKey, publicCert.getEncryptionPublicKey());
 	}
 	
-	public KeyParameter decode(EciesP256EncryptedKey encodedKey) throws InvalidCipherTextException {
+	public KeyParameter decode(EciesP256EncryptedKey encodedKey) throws InvalidCipherTextException, CryptoException, InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException {
 		final String clientCertName = "Client-private";
 		CertificateWrapper privateCert = CertificateManager.get(clientCertName);
 		assertNotNull(privateCert);

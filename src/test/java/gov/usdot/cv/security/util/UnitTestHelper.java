@@ -1,11 +1,23 @@
 package gov.usdot.cv.security.util;
 
+import java.io.IOException;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+import java.security.cert.CertificateException;
+import java.security.spec.ECGenParameterSpec;
 import java.util.Enumeration;
 
 import org.apache.log4j.ConsoleAppender;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PatternLayout;
+
+import gov.usdot.cv.security.cert.SecureECPrivateKey;
 
 /**
  * Unit test logging initializer
@@ -33,4 +45,19 @@ public class UnitTestHelper {
 		    rootLogger.addAppender(new ConsoleAppender(new PatternLayout("%-6r [%p] %c - %m%n")));
 	    }
 	}
+	
+   public static KeyStore inMemoryKeyStore() throws NoSuchAlgorithmException, CertificateException, IOException, KeyStoreException {
+      KeyStore keyStore = KeyStore.getInstance("BC");
+      keyStore.load(null, null);
+      return keyStore;
+   }
+   
+   public static SecureECPrivateKey createUnsecurePrivateKey(KeyStore keystore) throws NoSuchAlgorithmException, InvalidAlgorithmParameterException {
+      KeyPairGenerator kpg = KeyPairGenerator.getInstance("ECDSA");
+      ECGenParameterSpec ecSpec = new ECGenParameterSpec("prime256v1");
+      kpg.initialize(ecSpec, new SecureRandom());
+      KeyPair keypair = kpg.generateKeyPair();
+      return new SecureECPrivateKey(keystore, keypair.getPrivate());
+   }
+   
 }
