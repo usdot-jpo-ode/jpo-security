@@ -2,7 +2,6 @@ package gov.usdot.cv.security.crypto;
 
 import java.security.SecureRandom;
 
-import org.apache.log4j.Logger;
 import org.bouncycastle.crypto.digests.SHA256Digest;
 import org.bouncycastle.crypto.prng.ThreadedSeedGenerator;
 
@@ -14,10 +13,7 @@ import org.bouncycastle.crypto.prng.ThreadedSeedGenerator;
 public class CryptoProvider {
 
 
-   private static final Logger log = Logger.getLogger(CryptoProvider.class);
-
    public static final String ENCRYPTION_ALGORITHM = "ECIES";
-
 
    private static final SecureRandom secureRandom = new SecureRandom();
 	
@@ -26,11 +22,6 @@ public class CryptoProvider {
 	private ECDSAProvider ecdsaProvider = null;
 	private ECIESProvider eciesProvider = null;
 
-//   private Provider jceProvider;
-//	public CryptoProvider(Provider jceProvider) {
-//      super();
-//      this.jceProvider = jceProvider;
-//   }
 
    /**
 	 * Retrieves cryptographic provider for calculating SHA-256 digest per FIPS 180-2.
