@@ -4,8 +4,6 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.Signature;
 import java.security.interfaces.ECPrivateKey;
@@ -70,7 +68,7 @@ public class ECDSAProvider {
    private static final byte[] nullPublicKey = new byte[ECDSAPublicKeyEncodedLength];
 
    private final CryptoProvider cryptoProvider;
-//   private final ECDSASigner ecdsaSigner;
+   // private final ECDSASigner ecdsaSigner;
    private Signature ecdsaSigner;
    private final ECDSASigner ecdsaVerifier;
    private final ECKeyPairGenerator ecdsaKeyGenerator;
@@ -82,8 +80,10 @@ public class ECDSAProvider {
     * 
     * @param cryptoProvider
     *           cryptographic provider to use
-    * @throws NoSuchAlgorithmException 
-    * @throws InvalidAlgorithmParameterException 
+    * @throws CryptoException
+    *            if signing process fails due to any of the following causes
+    *            NoSuchAlgorithmException for providing unsupported signing algorithm,
+    *            InvalidKeyException for providing invalid key for signing
     */
    public ECDSAProvider(CryptoProvider cryptoProvider) throws CryptoException {
       try {
@@ -97,42 +97,44 @@ public class ECDSAProvider {
          ecdsaKeyGenerator = new ECKeyPairGenerator();
          ecdsaKeyGenerator.init(ecdsaKeyGenParameters);
 
-//         ecdsaSigner = new ECDSASigner();
+         // ecdsaSigner = new ECDSASigner();
          ecdsaVerifier = new ECDSASigner();
       } catch (Exception e) {
          throw new CryptoException("Error initializing!", e);
       }
    }
-   
-//   /**
-//    * Computes wrapped message signature
-//    * 
-//    * @param toBeSignedDataBytes
-//    *           bytes of the ToBeSignedData
-//    * @param signingCertificateBytes
-//    *           bytes of the certificate performing the signing
-//    * @param signingPrivateKey
-//    *           private signing key to use
-//    * @return message signature
-//    */
-//   public EcdsaP256SignatureWrapper computeSignature(
-//      byte[] toBeSignedDataBytes,
-//      byte[] signingCertificateBytes,
-//      ECPrivateKeyParameters signingPrivateKey) {
-//      if (toBeSignedDataBytes == null || signingCertificateBytes == null) {
-//         return null;
-//      }
-//
-//      byte[] inputHash = computeDigest(toBeSignedDataBytes, signingCertificateBytes);
-//
-//      ecdsaSigner.init(true, new ParametersWithRandom(signingPrivateKey, CryptoProvider.getSecureRandom()));
-//
-//      BigInteger[] signatureValue = ecdsaSigner.generateSignature(inputHash);
-//
-//      return new EcdsaP256SignatureWrapper(signatureValue[0], signatureValue[1]);
-//   }
 
-   
+   // /**
+   // * Computes wrapped message signature
+   // *
+   // * @param toBeSignedDataBytes
+   // * bytes of the ToBeSignedData
+   // * @param signingCertificateBytes
+   // * bytes of the certificate performing the signing
+   // * @param signingPrivateKey
+   // * private signing key to use
+   // * @return message signature
+   // */
+   // public EcdsaP256SignatureWrapper computeSignature(
+   // byte[] toBeSignedDataBytes,
+   // byte[] signingCertificateBytes,
+   // ECPrivateKeyParameters signingPrivateKey) {
+   // if (toBeSignedDataBytes == null || signingCertificateBytes == null) {
+   // return null;
+   // }
+   //
+   // byte[] inputHash = computeDigest(toBeSignedDataBytes,
+   // signingCertificateBytes);
+   //
+   // ecdsaSigner.init(true, new ParametersWithRandom(signingPrivateKey,
+   // CryptoProvider.getSecureRandom()));
+   //
+   // BigInteger[] signatureValue = ecdsaSigner.generateSignature(inputHash);
+   //
+   // return new EcdsaP256SignatureWrapper(signatureValue[0],
+   // signatureValue[1]);
+   // }
+
    /**
     * Computes wrapped message signature
     * 
@@ -143,11 +145,15 @@ public class ECDSAProvider {
     * @param signingPrivateKey
     *           private signing key to use
     * @return message signature
+    * @throws CryptoException
+    *            if signing process fails due to any of the following causes
+    *            NoSuchAlgorithmException for providing unsupported signing algorithm,
+    *            InvalidKeyException for providing invalid key for signing
     */
    public EcdsaP256SignatureWrapper computeSignature(
       byte[] toBeSignedDataBytes,
       byte[] signingCertificateBytes,
-      SecureECPrivateKey signingPrivateKey) {
+      SecureECPrivateKey signingPrivateKey) throws CryptoException {
       if (toBeSignedDataBytes == null || signingCertificateBytes == null) {
          return null;
       }
@@ -157,7 +163,7 @@ public class ECDSAProvider {
             ecdsaSigner = Signature.getInstance(SIGNATURE_ALGORITHM, signingPrivateKey.getKeyStore().getProvider());
          }
          ecdsaSigner.initSign((PrivateKey) signingPrivateKey.getKey(), CryptoProvider.getSecureRandom());
-   
+
          byte[] inputHash = computeDigest(toBeSignedDataBytes, signingCertificateBytes);
          EcdsaP256SignatureWrapper signatureWraper = null;
          try {
@@ -168,10 +174,10 @@ public class ECDSAProvider {
          } catch (Exception e) {
             log.error("Error signing data", e);
          }
-   
+
          return signatureWraper;
       } catch (Exception e) {
-         throw new SecurityException("Error signing data!", e);
+         throw new CryptoException("Error signing data!", e);
       }
    }
 
@@ -205,12 +211,15 @@ public class ECDSAProvider {
    }
 
    /**
-    * Computes SHA256 digest of the concatenated toBeSignedDataBytes and signingCertificateBytes 
+    * Computes SHA256 digest of the concatenated toBeSignedDataBytes and
+    * signingCertificateBytes
+    * 
     * @param toBeSignedDataBytes
     *           bytes of the ToBeSignedData
     * @param signingCertificateBytes
     *           bytes of the certificate which performed the signing
-    * @return the SHA256 digest of the concatenated toBeSignedDataBytes and signingCertificateBytes
+    * @return the SHA256 digest of the concatenated toBeSignedDataBytes and
+    *         signingCertificateBytes
     */
    public byte[] computeDigest(byte[] toBeSignedDataBytes, byte[] signingCertificateBytes) {
       byte[] tbsBytesHash = cryptoProvider.computeDigest(toBeSignedDataBytes, 0, toBeSignedDataBytes.length);
@@ -219,7 +228,7 @@ public class ECDSAProvider {
       byte[] inputHashConcat = ByteArrayHelper.concat(tbsBytesHash, certBytesHash);
       byte[] inputHash = cryptoProvider.computeDigest(inputHashConcat);
       return inputHash;
-//      return inputHashConcat;
+      // return inputHashConcat;
    }
 
    /**
@@ -301,29 +310,37 @@ public class ECDSAProvider {
    }
 
    /**
-    * Encodes the R and S values of ECDSA signature into  ASN.1 DER encoding.
+    * Encodes the R and S values of ECDSA signature into ASN.1 DER encoding.
+    * 
     * @param r
-    * @param S
-    * @return
-    * @throws Exception
+    *           value of ECDSA signature
+    * @param s
+    *           value of ECDSA signature
+    * @return signature bytes
+    * @throws CryptoException due to IOException 
     */
-   public static byte[] encodeECDSASignature(BigInteger r, BigInteger s) throws Exception {
-      ByteArrayOutputStream baos = new ByteArrayOutputStream();
-      
-      DERSequenceGenerator seq = new DERSequenceGenerator(baos);
-      seq.addObject(new ASN1Integer(r));
-      seq.addObject(new ASN1Integer(s));
-      seq.close();
-      return s.toByteArray(); 
+   public static byte[] encodeECDSASignature(BigInteger r, BigInteger s) throws CryptoException {
+      try {
+         ByteArrayOutputStream baos = new ByteArrayOutputStream();
+
+         DERSequenceGenerator seq = new DERSequenceGenerator(baos);
+         seq.addObject(new ASN1Integer(r));
+         seq.addObject(new ASN1Integer(s));
+         seq.close();
+         return s.toByteArray();
+      } catch (Exception e) {
+         throw new CryptoException("Error encoding ECDSA signature", e);
+      }
    }
 
    /**
     * Decodes private key
     * 
     * @param privateKeyBytes
-    *           array to decode the key from. *CAUTION*: This *IS NOT* the private key encoding
-    *           returned by the PrivateKey#getEncoded() method. This is the byte array value
-    *           of the private key BigInteger value. 
+    *           array to decode the key from. *CAUTION*: This *IS NOT* the
+    *           private key encoding returned by the PrivateKey#getEncoded()
+    *           method. This is the byte array value of the private key
+    *           BigInteger value.
     * @return decoded private key
     */
    public ECPrivateKeyParameters decodePrivateKey(byte[] privateKeyBytes) {
@@ -334,7 +351,8 @@ public class ECDSAProvider {
    /**
     * Decodes private key
     * 
-    * @param privateKey is the Java spec EC private key
+    * @param privateKey
+    *           is the Java spec EC private key
     * 
     * @return decodes private key parameters
     */
@@ -342,7 +360,6 @@ public class ECDSAProvider {
       return new ECPrivateKeyParameters(privateKey.getS(), ecdsaDomainParameters);
    }
 
-   
    /**
     * Encodes private key
     * 
@@ -509,30 +526,39 @@ public class ECDSAProvider {
       return ecdsaKeyGenerator.generateKeyPair();
    }
 
+   /**
+    * Decodes an encoded ECDSA signature to its constituent values, R and S
+    * 
+    * @param signature ECDSA encoded signature bytes
+    * @return R and S values in an array of BigInteger where [0] = R and [1] = S
+    * 
+    * @throws CryptoException due to IOException thrown while trying to read ASN.1 object
+    */
    public static BigInteger[] decodeECDSASignature(byte[] signature) throws CryptoException {
       BigInteger[] sigs = new BigInteger[2];
       ByteArrayInputStream inStream = new ByteArrayInputStream(signature);
-      try (ASN1InputStream asnInputStream = new ASN1InputStream(inStream)){
+      try (ASN1InputStream asnInputStream = new ASN1InputStream(inStream)) {
          ASN1Primitive asn1 = asnInputStream.readObject();
 
          int count = 0;
          if (asn1 instanceof ASN1Sequence) {
-             ASN1Sequence asn1Sequence = (ASN1Sequence) asn1;
-             ASN1Encodable[] asn1Encodables = asn1Sequence.toArray();
-             for (ASN1Encodable asn1Encodable : asn1Encodables) {
-                 ASN1Primitive asn1Primitive = asn1Encodable.toASN1Primitive();
-                 if (asn1Primitive instanceof ASN1Integer) {
-                     ASN1Integer asn1Integer = (ASN1Integer) asn1Primitive;
-                     BigInteger integer = asn1Integer.getValue();
-                     if (count  < 2) {
-                         sigs[count] = integer;
-                     }
-                     count++;
-                 }
-             }
+            ASN1Sequence asn1Sequence = (ASN1Sequence) asn1;
+            ASN1Encodable[] asn1Encodables = asn1Sequence.toArray();
+            for (ASN1Encodable asn1Encodable : asn1Encodables) {
+               ASN1Primitive asn1Primitive = asn1Encodable.toASN1Primitive();
+               if (asn1Primitive instanceof ASN1Integer) {
+                  ASN1Integer asn1Integer = (ASN1Integer) asn1Primitive;
+                  BigInteger integer = asn1Integer.getValue();
+                  if (count < 2) {
+                     sigs[count] = integer;
+                  }
+                  count++;
+               }
+            }
          }
          if (count != 2) {
-             throw new CryptoException(String.format("Invalid ECDSA signature. Expected count of 2 but got: %d. Signature is: %s", count,
+            throw new CryptoException(
+                  String.format("Invalid ECDSA signature. Expected count of 2 but got: %d. Signature is: %s", count,
                      Hex.encodeHexString(signature)));
          }
       } catch (Exception e) {

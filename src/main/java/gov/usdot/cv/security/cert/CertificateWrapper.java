@@ -143,8 +143,8 @@ public class CertificateWrapper {
     * @throws CertificateException
     *            on certificate error
     */
-   static public CertificateWrapper fromCertificate(CryptoProvider cryptoProvider, Certificate certificate)
-         throws CertificateException, EncodeFailedException, EncodeNotSupportedException {
+   static public CertificateWrapper fromCertificate(CryptoProvider cryptoProvider, Certificate certificate) 
+         throws CertificateException {
       return new CertificateWrapper(cryptoProvider, certificate);
    }
 
@@ -184,7 +184,7 @@ public class CertificateWrapper {
       CryptoProvider cryptoProvider,
       byte[] certificateBytes,
       byte[] privateKeyReconstructionValueBytes,
-      SecureECPrivateKey seedPrivateKey) throws CertificateException, EncodeFailedException, EncodeNotSupportedException {
+      SecureECPrivateKey seedPrivateKey) throws CertificateException {
       return new CertificateWrapper(cryptoProvider, certificateBytes,
          privateKeyReconstructionValueBytes, seedPrivateKey);
    }
@@ -218,13 +218,8 @@ public class CertificateWrapper {
     * 
     * @return public encryption key or null if the key is not present in the
     *         certificate
-    * @throws EncodeNotSupportedException
-    *            on non-supported encoding
-    * @throws EncodeFailedException
-    *            encoding error
     */
-   public final ECPublicKeyParameters getEncryptionPublicKey()
-         throws EncodeFailedException, EncodeNotSupportedException {
+   public final ECPublicKeyParameters getEncryptionPublicKey() {
       return encryptionPublicKey;
    }
 
@@ -575,7 +570,7 @@ public class CertificateWrapper {
     *           the encoded certificate bytes
     * @return a byte array of the certificate without the signature
     */
-   private static byte[] getUnsignedDataBytes(final Certificate cert, final byte[] certBytes) {
+   public static byte[] getUnsignedDataBytes(final Certificate cert, final byte[] certBytes) {
       byte[] unsignedData = null;
 
       if (cert.hasSignature()) {
