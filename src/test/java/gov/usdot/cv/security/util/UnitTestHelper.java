@@ -18,6 +18,7 @@ import org.apache.log4j.Logger;
 import org.apache.log4j.PatternLayout;
 
 import gov.usdot.cv.security.cert.SecureECPrivateKey;
+import gov.usdot.cv.security.crypto.ECDSAProvider;
 
 /**
  * Unit test logging initializer
@@ -54,7 +55,7 @@ public class UnitTestHelper {
    
    public static SecureECPrivateKey createUnsecurePrivateKey(KeyStore keystore) throws NoSuchAlgorithmException, InvalidAlgorithmParameterException {
       KeyPairGenerator kpg = KeyPairGenerator.getInstance("ECDSA");
-      ECGenParameterSpec ecSpec = new ECGenParameterSpec("prime256v1");
+      ECGenParameterSpec ecSpec = new ECGenParameterSpec(ECDSAProvider.KEYPAIR_GENERATION_ALGORTHM_SPECS);
       kpg.initialize(ecSpec, new SecureRandom());
       KeyPair keypair = kpg.generateKeyPair();
       return new SecureECPrivateKey(keystore, keypair.getPrivate());

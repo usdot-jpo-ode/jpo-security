@@ -5,6 +5,7 @@ import java.io.ByteArrayOutputStream;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.security.PrivateKey;
+import java.security.Provider;
 import java.security.Signature;
 import java.security.interfaces.ECPrivateKey;
 
@@ -51,9 +52,10 @@ public class ECDSAProvider {
 
    public static final Logger log = Logger.getLogger(ECDSAProvider.class);
 
-   public static final String KEYPAIR_GENERATION_ALGORTHM_SPECS = "prime256v1";
+   public static final String KEYPAIR_GENERATION_ALGORTHM_SPECS = "secp256r1";
    public static final String KEYPAIR_GENERATION_ALGORITHM = "ECDSA";
-   public static final String SIGNATURE_ALGORITHM = "NONEwithECDSA";
+   public static final String SIGNATURE_ALGORITHM_STD = "SHA256withECDSA";
+   public static final String SIGNATURE_ALGORITHM_LUNA = "NONEwithECDSA";
 
    /**
     * Length of the encoded ECDSA public key in bytes
@@ -159,9 +161,15 @@ public class ECDSAProvider {
       }
 
       try {
+         Provider provider = signingPrivateKey.getKeyStore().getProvider();
          if (ecdsaSigner == null) {
-            ecdsaSigner = Signature.getInstance(SIGNATURE_ALGORITHM, signingPrivateKey.getKeyStore().getProvider());
+            if (provider.getName().equals("LunaProvider")) {
+               ecdsaSigner = Signature.getInstance(SIGNATURE_ALGORITHM_LUNA, provider);
+            } else {
+               ecdsaSigner = Signature.getInstance(SIGNATURE_ALGORITHM_STD, provider);
+            }
          }
+
          ecdsaSigner.initSign((PrivateKey) signingPrivateKey.getKey(), CryptoProvider.getSecureRandom());
 
          byte[] inputHash = computeDigest(toBeSignedDataBytes, signingCertificateBytes);
@@ -199,11 +207,11 @@ public class ECDSAProvider {
       byte[] signingCertificateBytes,
       ECPublicKeyParameters signingPublicKey,
       EcdsaP256SignatureWrapper signature) {
-      if (toBeSignedDataBytes == null || signingCertificateBytes == null) {
-         return false;
-      }
+         if (toBeSignedDataBytes == null || signingCertificateBytes == null) {
+            return false;
+         }
 
-      byte[] inputHash = computeDigest(toBeSignedDataBytes, signingCertificateBytes);
+         byte[] inputHash = computeDigest(toBeSignedDataBytes, signingCertificateBytes);
 
       ecdsaVerifier.init(false, signingPublicKey);
 
