@@ -87,7 +87,7 @@ public class FileCertificateStore {
 			byte[]  privateKeyReconstructionValueBytes = null;
 			try {
 				privateKeyReconstructionValueBytes = FileUtils.readFileToByteArray(privateKeyReconstructionFilePath.toFile());
-			} catch (IOException | NullPointerException ex ) {
+			} catch (IOException ex ) {
 				log.error("Coulnd't read file '" + privateKeyReconstructionFilePath + "'. Reason: " + ex.getMessage(), ex);
 			}
 			
