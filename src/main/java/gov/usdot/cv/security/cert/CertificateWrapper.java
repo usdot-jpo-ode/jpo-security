@@ -51,7 +51,7 @@ public class CertificateWrapper {
 	protected final CryptoProvider cryptoProvider;
 	protected final CryptoHelper cryptoHelper;
 	
-	private static volatile CertificateWrapper rootPublicCertificate;
+	private static CertificateWrapper rootPublicCertificate;
 
 	/**
 	 * Instantiates empty certificate wrapper with new cryptographic provider
@@ -445,13 +445,9 @@ public class CertificateWrapper {
 	 * Retrieves certificate's signing certificate instance
 	 * @return certificate's signing certificate
 	 */
-	static private CertificateWrapper getRootPublicCertificate() {
-		if ( rootPublicCertificate == null ) {
-			synchronized(Certificate.class) {
-				if ( rootPublicCertificate == null )
-					rootPublicCertificate = CertificateManager.get(rootPublicCertificateFriendlyName);
-			}
-		}
+	static synchronized private CertificateWrapper getRootPublicCertificate() {
+		if ( rootPublicCertificate == null )
+			rootPublicCertificate = CertificateManager.get(rootPublicCertificateFriendlyName);
 		return rootPublicCertificate;
 	}
 	
