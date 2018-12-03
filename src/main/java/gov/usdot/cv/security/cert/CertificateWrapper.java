@@ -51,7 +51,7 @@ public class CertificateWrapper {
 	protected final CryptoProvider cryptoProvider;
 	protected final CryptoHelper cryptoHelper;
 	
-	private static CertificateWrapper rootPublicCertificate;
+	private static volatile CertificateWrapper rootPublicCertificate;
 
 	/**
 	 * Instantiates empty certificate wrapper with new cryptographic provider

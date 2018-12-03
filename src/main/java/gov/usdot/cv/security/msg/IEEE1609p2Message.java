@@ -141,10 +141,11 @@ public class IEEE1609p2Message {
 			Ieee1609Dot2Data message = Ieee1609dot2Helper.decodeCOER(msgBytes, new Ieee1609Dot2Data());
 			Uint8 version = message.getProtocolVersion();
 			if(!version.equalTo(protocolVersion)) {
+            int protocolVersionInt = protocolVersion.intValue();
 				throw new MessageException(
 							String.format("Unexpected Protocol Version value. Expected %d, Actual: %d.",
 											version,
-											protocolVersion.intValue()));
+											protocolVersionInt));
 			}
 			
 			Ieee1609Dot2Content content = message.getContent();
@@ -182,10 +183,11 @@ public class IEEE1609p2Message {
         
         Uint8 version = message.getProtocolVersion();
         if(!version.equalTo(protocolVersion)) {
+            int protocolVersionInt = protocolVersion.intValue();
             throw new MessageException(
                         String.format("Unexpected Protocol Version value. Expected %d, Actual: %d.",
                                         version,
-                                        protocolVersion.intValue()));
+                                        protocolVersionInt));
         }
         
         Ieee1609Dot2Content content = message.getContent();
