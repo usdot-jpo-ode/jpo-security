@@ -16,6 +16,7 @@ import org.bouncycastle.crypto.InvalidCipherTextException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.oss.asn1.DecodeFailedException;
@@ -76,7 +77,7 @@ public class IEEE1609p2MessageTest {
 	 * @throws EncodeNotSupportedException 
 	 * @throws EncodeFailedException 
 	 */
-	@Test
+	@Test @Ignore
 	public void useCase1() throws MessageException, CertificateException, CryptoException, EncodeFailedException, EncodeNotSupportedException {
 		// only once on the client side
 		//IEEE1609p2Message.setSelfCertificateFriendlyName("Client");
@@ -111,7 +112,7 @@ public class IEEE1609p2MessageTest {
 	 * @throws InvalidCipherTextException 
 	 * @throws EncodeFailedException 
 	 */
-	@Test
+	@Test @Ignore
 	public void useCase2() throws CertificateException, CryptoException, EncodeFailedException, InvalidCipherTextException, EncodeNotSupportedException {
 		// only once on client side
 		IEEE1609p2Message.setSelfCertificateFriendlyName("Client");
@@ -164,7 +165,7 @@ public class IEEE1609p2MessageTest {
 	 * @throws EncodeFailedException 
 	 * @throws InvalidCipherTextException 
 	 */
-	@Test
+	@Test @Ignore
 	public void useCase3() throws MessageException, CertificateException, CryptoException, EncodeFailedException, EncodeNotSupportedException, InvalidCipherTextException {
 		final int psid = 0xcafe;
 		// only once on client side
@@ -240,7 +241,7 @@ public class IEEE1609p2MessageTest {
 	 * @throws DecodeFailedException 
 	 * @throws InvalidCipherTextException 
 	 */
-	@Test
+	@Test @Ignore
 	public void useCase4() throws MessageException, CertificateException, CryptoException, DecoderException, IOException, DecodeFailedException, EncodeFailedException, DecodeNotSupportedException, EncodeNotSupportedException, InvalidCipherTextException {
 		useCase4(true);		// SDC is added as a recipient so the decryption will be successful
 		useCase4(false);	// SDC is not added as a recipient so the decryption will fail
