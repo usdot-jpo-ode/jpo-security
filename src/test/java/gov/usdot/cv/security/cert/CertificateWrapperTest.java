@@ -17,6 +17,7 @@ import org.bouncycastle.crypto.InvalidCipherTextException;
 import org.bouncycastle.crypto.params.ECPublicKeyParameters;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.oss.asn1.DecodeFailedException;
@@ -35,6 +36,7 @@ import gov.usdot.cv.security.crypto.ECIESProvider;
 import gov.usdot.cv.security.crypto.EcdsaP256SignatureWrapper;
 import gov.usdot.cv.security.util.UnitTestHelper;
 
+@Ignore
 public class CertificateWrapperTest {
 
     static final private boolean isDebugOutput = false;

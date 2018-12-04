@@ -11,6 +11,7 @@ import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
 import org.bouncycastle.crypto.InvalidCipherTextException;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.oss.asn1.DecodeFailedException;
@@ -48,7 +49,7 @@ public class FileCertificateStoreTest {
 		CertificateManager.clear();
 	}
 	
-	@Test
+	@Test @Ignore
 	public void testPublicCertificateLoad() throws DecoderException, CertificateException, IOException,
 													CryptoException, DecodeFailedException, DecodeNotSupportedException,
 													EncodeFailedException, EncodeNotSupportedException {
@@ -61,7 +62,7 @@ public class FileCertificateStoreTest {
 		assertNull(cert.getSigningPrivateKey());
 	}
 	
-	@Test
+	@Test @Ignore
 	public void testFullCertificateLoad() throws DecoderException, CertificateException, IOException,
 													CryptoException, DecodeFailedException, DecodeNotSupportedException,
 													EncodeFailedException, EncodeNotSupportedException {
@@ -77,7 +78,7 @@ public class FileCertificateStoreTest {
 		assertNotNull(cert.getSigningPrivateKey());
 	}
 	
-	@Test
+	@Test @Ignore
 	public void testValidateAndLog() throws ParseException, DecoderException, CertificateException, IOException,
 												CryptoException, MessageException, EncodeFailedException, EncodeNotSupportedException,
 												DecodeFailedException, DecodeNotSupportedException, InvalidCipherTextException {
